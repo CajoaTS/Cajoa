@@ -1,0 +1,49 @@
+{
+  "name": "cajoa",
+  "version": "0.1.0",
+  "description": "A beginner-friendly, signals-based frontend framework.",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --clean",
+    "test": "vitest",
+    "prepublishOnly": "vitest run && npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cjmgrc/Cajoa.git"
+  },
+  "keywords": [
+    "frontend",
+    "framework",
+    "signals",
+    "reactive",
+    "ui",
+    "cajoa"
+  ],
+  "author": "cjmgrc",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/cjmgrc/Cajoa/issues"
+  },
+  "homepage": "https://github.com/cjmgrc/Cajoa#readme",
+  "devDependencies": {
+    "jsdom": "^29.1.1",
+    "tsup": "^9.0.0",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  }
+}
