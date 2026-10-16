@@ -1,31 +1,111 @@
-type Effect = () => void;
-let current: Effect | null = null;
+type Cleanup = () => void;
+
+interface Owner {
+  cleanups: Cleanup[];
+}
+
+interface Computation extends Owner {
+  run: () => void;
+  deps: Set<Set<Computation>>; // all signals that's been read
+  disposed: boolean;
+}
+
+let currentOwner: Owner | null = null;
+let currentEffect: Computation | null = null;
+
+function clean(owner: Owner) {
+  const fns = owner.cleanups;
+  owner.cleanups = [];
+  for (const fn of fns) fn();
+}
+
+function cleanComputation(c: Computation) {
+  for (const subs of c.deps) subs.delete(c); // this unsubscribes to all signal
+  c.deps.clear();
+  clean(c); // run cleanups (tgt with the disposal of the children)
+}
 
 export function createSignal<T>(value: T) {
-  const subs = new Set<Effect>();
+  const subs = new Set<Computation>();
 
   const get = () => {
-    if (current) subs.add(current);
+    if (currentEffect) {
+      subs.add(currentEffect);
+      currentEffect.deps.add(subs);
+    }
     return value;
   };
 
   const set = (next: T | ((prev: T) => T)) => {
-    value = typeof next === "function" ? (next as any)(value) : next;
-    [...subs].forEach((fn) => fn());
+    const v = typeof next === "function" ? (next as any)(value) : next;
+    if (Object.is(v, value)) return; // no changes, no update
+    value = v;
+    [...subs].forEach((effect) => effect.run());
   };
 
   return [get, set] as const;
 }
 
-export function createEffect(fn: Effect) {
-  const run = () => {
-    const prev = current;
-    current = run;
+export function createEffect(fn: () => void) {
+  const effect: Computation = {
+    cleanups: [],
+    deps: new Set(),
+    disposed: false,
+    run() {
+      if (effect.disposed) return;
+      cleanComputation(effect); // cleanup the prev run
+      const prevOwner = currentOwner;
+      const prevEffect = currentEffect;
+      currentOwner = effect;
+      currentEffect = effect;
+      try {
+        fn();
+      } finally {
+        currentOwner = prevOwner;
+        currentEffect = prevEffect;
+      }
+    },
+  };
+
+  // the parent (if there is)  will dispose this effect
+  onCleanup(() => {
+    effect.disposed = true;
+    cleanComputation(effect);
+  });
+
+  effect.run();
+}
+
+export function onCleanup(fn: Cleanup) {
+  currentOwner?.cleanups.push(fn);
+}
+
+export function createRoot<T>(fn: (dispose: () => void) => T): T {
+  const root: Owner = { cleanups: [] };
+  const prevOwner = currentOwner;
+  const prevEffect = currentEffect;
+  currentOwner = root;
+  currentEffect = null;
+  try {
+    return fn(() => clean(root));
+  } finally {
+    currentOwner = prevOwner;
+    currentEffect = prevEffect;
+  }
+}
+
+export function onMount(fn: () => void) {
+  const owner = currentOwner;
+  queueMicrotask(() => {
+    const prevOwner = currentOwner;
+    const prevEffect = currentEffect;
+    currentOwner = owner; // to make the onCleanup work inside the onMount
+    currentEffect = null; // doesn't track signals
     try {
       fn();
     } finally {
-      current = prev;
+      currentOwner = prevOwner;
+      currentEffect = prevEffect;
     }
-  };
-  run();
+  });
 }

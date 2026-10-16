@@ -1,5 +1,5 @@
 import { test, expect } from "vitest";
-import { createSignal, createEffect } from "../src/reactivity/signal";
+import { createSignal, createEffect } from "../src";
 
 test("effect re-runs when signal changes", () => {
   const [n, setN] = createSignal(0);
