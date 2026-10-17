@@ -3,7 +3,7 @@
 A small, beginner-friendly frontend framework built on **signals** and **JSX**.
 No virtual DOM, no hooks rules, no re-rendering components.
 
-> ⚠️ **v0.4 (early stage).** The API may still change. Not production-ready yet.
+> ⚠️ **v0.5 (early stage).** The API may still change. Not production-ready yet.
 
 ## Why Cajoa?
 
@@ -159,6 +159,14 @@ Routes are matched in order, so put `path="*"` last.
 | `usePath()`                  | Returns a signal getter for the current pathname.          |
 | `untrack(fn)`                | Runs `fn` without subscribing to signals.                  |
 
+### Renderer
+
+| Function                | What it does                                                       |
+| ----------------------- | ------------------------------------------------------------------ |
+| `setRenderer(renderer)` | Swaps the renderer (default: DOM). Used to target other platforms. |
+| `getRenderer()`         | Returns the current renderer.                                      |
+| `domRenderer`           | The built-in DOM renderer.                                         |
+
 ## Good to know
 
 - `For` uses the item itself as the key by default. If you pass `key`, items with the same key are **not** re-rendered when their data changes, so keys must be unique and the item should hold its own signals if it needs to update.
@@ -174,6 +182,7 @@ Routes are matched in order, so put `path="*"` last.
 - Single-page apps need a server fallback to `index.html` for unknown paths.
 - `createMemo` can show a brief inconsistent state when memos depend on each other.
 - `set` calls are not batched automatically inside event handlers. Wrap them in `batch()`.
+- The Router and event names (`onClick`) are still web-specific for now.
 
 ## Roadmap
 
@@ -185,8 +194,11 @@ Routes are matched in order, so put `path="*"` last.
 - [x] Context
 - [x] JSX support
 - [x] Fragments
-- [ ] Vite plugin (removes the two rules above)
 - [x] Router
+- [x] Renderer abstraction (core no longer depends on DOM)
+- [ ] Split into packages ('@cajoa/core', '@cajoa/dom')
+- [ ] Vite plugin (removes the two rules above)
+- [ ] Native renderer (mobile, desktop)
 - [ ] SSR
 
 ## Development

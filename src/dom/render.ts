@@ -1,11 +1,15 @@
 import { createRoot } from "../reactivity/signal";
+import { getRenderer } from "../renderer";
 
 export function render(component: () => Node, container: Element) {
   return createRoot((dispose) => {
-    container.replaceChildren(component());
+    const r = getRenderer();
+    const node = component();
+    r.clear(container);
+    r.insert(container, node);
     return () => {
       dispose();
-      container.replaceChildren();
+      r.clear(container);
     };
   });
 }

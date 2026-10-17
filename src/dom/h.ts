@@ -1,4 +1,5 @@
 import { createEffect } from "../reactivity/signal";
+import { getRenderer } from "../renderer";
 
 export type Child =
   | string
@@ -15,81 +16,60 @@ export function h(
   props: Record<string, any> | null,
   ...children: Child[]
 ): HTMLElement {
-  const el = document.createElement(tag);
+  const r = getRenderer();
+  const el = r.createElement(tag);
 
   for (const [key, value] of Object.entries(props ?? {})) {
-    setProp(el, key, value);
+    if (typeof value === "function" && !key.startsWith("on")) {
+      createEffect(() => r.setProp(el, key, value())); // reactive prop
+    } else {
+      r.setProp(el, key, value);
+    }
   }
   appendChildren(el, children);
-  return el;
+  return el as HTMLElement;
 }
 
-function setProp(el: HTMLElement, key: string, value: any) {
-  if (key.startsWith("on") && typeof value === "function") {
-    el.addEventListener(key.slice(2).toLowerCase(), value);
-  } else if (typeof value === "function") {
-    createEffect(() => applyAttr(el, key, value()));
-  } else {
-    applyAttr(el, key, value);
-  }
-}
-
-function applyAttr(el: HTMLElement, key: string, value: unknown) {
-  const name = key === "className" ? "class" : key;
-  if (value == null || value === false) el.removeAttribute(name);
-  else el.setAttribute(name, value === true ? "" : String(value));
-}
-
-function toNodes(value: unknown): Node[] {
-  const out: Node[] = [];
+function toNodes(value: unknown): any[] {
+  const r = getRenderer();
+  const out: any[] = [];
   for (const v of [value].flat(Infinity) as unknown[]) {
     if (v == null || typeof v === "boolean") continue;
-    out.push(v instanceof Node ? v : document.createTextNode(String(v)));
+    out.push(r.isNode(v) ? v : r.createText(String(v)));
   }
   return out;
 }
 
-export function appendChildren(parent: ParentNode, children: Child[]) {
-  const pending: Child[] = [...children].reverse();
-  while (pending.length > 0) {
-    const child = pending.pop()!;
-    if (Array.isArray(child)) {
-      for (let i = child.length - 1; i >= 0; i--) {
-        pending.push(child[i]);
-      }
-      continue;
-    }
-
-    if (typeof child === "function") {
-      const start = document.createComment("");
-      const end = document.createComment("");
-      parent.append(start, end);
-      createEffect(() => {
-        reconcile(start, end, toNodes(child()));
-      });
-    } else {
-      parent.append(...toNodes(child));
-    }
-  }
-}
-
-function reconcile(start: Node, end: Node, next: Node[]) {
+function reconcile(start: any, end: any, next: any[]) {
+  const r = getRenderer();
   const keep = new Set(next);
 
-  // 1. burahin ang mga lumang node na wala na sa bagong listahan
-  let cur = start.nextSibling;
+  let cur = r.nextSibling(start);
   while (cur && cur !== end) {
-    const after = cur.nextSibling;
-    if (!keep.has(cur)) (cur as ChildNode).remove();
+    const after = r.nextSibling(cur);
+    if (!keep.has(cur)) r.remove(cur);
     cur = after;
   }
 
-  // 2. ilagay o ilipat ang mga node sa tamang pagkakasunod-sunod
-  const parent = end.parentNode!;
-  let ref = start.nextSibling;
+  const parent = r.parentNode(end)!;
+  let ref = r.nextSibling(start);
   for (const node of next) {
-    if (node === ref)
-      ref = ref!.nextSibling; // nasa tamang pwesto na, walang galaw
-    else parent.insertBefore(node, ref);
+    if (node === ref) ref = r.nextSibling(ref);
+    else r.insert(parent, node, ref);
+  }
+}
+
+export function appendChildren(parent: any, children: Child[]) {
+  const r = getRenderer();
+  for (const child of (children as unknown[]).flat(Infinity) as Child[]) {
+    if (typeof child === "function") {
+      const start = r.createMarker();
+      const end = r.createMarker();
+      r.insert(parent, start);
+      r.insert(parent, end);
+      createEffect(() => reconcile(start, end, toNodes(child())));
+    } else {
+      for (const node of toNodes(child)) r.insert(parent, node);
+    }
   }
 }

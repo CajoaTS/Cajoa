@@ -7,3 +7,6 @@ export * from "./reactivity/memo";
 export * from "./jsx-runtime";
 export type { Child } from "./dom/h";
 export * from "./router";
+export { setRenderer, getRenderer } from "./renderer";
+export type { Renderer } from "./renderer/types";
+export { domRenderer } from "./renderer/dom";
