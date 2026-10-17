@@ -1,4 +1,4 @@
-import type { Renderer } from "./types";
+import type { Renderer } from "@cajoa/core";
 
 export const domRenderer: Renderer<Node> = {
   createElement: (tag) => document.createElement(tag),

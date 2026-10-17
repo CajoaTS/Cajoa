@@ -1,4 +1,4 @@
-import { test, expect } from "vitest";
+﻿import { test, expect } from "vitest";
 import {
   createSignal,
   createRoot,
@@ -8,7 +8,7 @@ import {
   h,
   render,
   Show,
-} from "../src";
+} from "cajoa";
 
 test("returns default outside a provider", () => {
   const Theme = createContext("light");

@@ -1,5 +1,5 @@
-import { test, expect } from "vitest";
-import { createSignal, render, Show } from "../src";
+﻿import { test, expect } from "vitest";
+import { createSignal, render, Show } from "cajoa";
 
 test("fragment renders siblings without a wrapper", () => {
   const root = document.createElement("div");

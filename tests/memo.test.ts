@@ -1,5 +1,5 @@
-import { test, expect } from "vitest";
-import { createSignal, createEffect, createMemo } from "../src";
+﻿import { test, expect } from "vitest";
+import { createSignal, createEffect, createMemo } from "cajoa";
 
 test("memo skips downstream updates when result is equal", () => {
   const [n, setN] = createSignal(1);

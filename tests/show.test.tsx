@@ -1,5 +1,5 @@
-import { test, expect } from "vitest";
-import { createSignal, render, Show } from "../src";
+﻿import { test, expect } from "vitest";
+import { createSignal, render, Show } from "cajoa";
 
 test("Show does not re-create children while truthiness is unchanged", () => {
   const [n, setN] = createSignal(1);

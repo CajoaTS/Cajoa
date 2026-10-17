@@ -1,4 +1,4 @@
-import { test, expect } from "vitest";
+﻿import { test, expect } from "vitest";
 import {
   createSignal,
   createEffect,
@@ -8,7 +8,7 @@ import {
   h,
   render,
   Show,
-} from "../src";
+} from "cajoa";
 
 test("onCleanup runs before an effect re-runs", () => {
   const [n, setN] = createSignal(0);

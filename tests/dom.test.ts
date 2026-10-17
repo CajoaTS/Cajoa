@@ -1,7 +1,7 @@
-import { test, expect } from "vitest";
-import { createSignal } from "../src/reactivity/signal";
-import { h } from "../src/dom/h";
-import { render } from "../src/dom/render";
+﻿import { test, expect } from "vitest";
+import { createSignal } from "cajoa";
+import { h } from "cajoa";
+import { render } from "cajoa";
 
 test("text updates when signal changes", () => {
   const [count, setCount] = createSignal(0);

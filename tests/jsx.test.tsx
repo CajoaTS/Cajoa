@@ -1,5 +1,5 @@
-import { test, expect } from "vitest";
-import { createSignal, render, Show, For } from "../src";
+﻿import { test, expect } from "vitest";
+import { createSignal, render, Show, For } from "cajoa";
 
 test("reactive text in JSX", () => {
   const [count, setCount] = createSignal(0);

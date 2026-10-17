@@ -1,19 +1,16 @@
 {
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "lib": ["ES2022", "DOM"],
-    "strict": true,
-    "declaration": true,
-    "skipLibCheck": true,
     "jsx": "react-jsx",
     "jsxImportSource": "cajoa",
+    "noEmit": true,
     "paths": {
-      "cajoa": ["./src/index.ts"],
-      "cajoa/jsx-runtime": ["./src/jsx-runtime.ts"],
-      "cajoa/jsx-dev-runtime": ["./src/jsx-runtime.ts"]
+      "cajoa": ["./packages/cajoa/src/index.ts"],
+      "@cajoa/core": ["./packages/core/src/index.ts"],
+      "@cajoa/dom": ["./packages/dom/src/index.ts"],
+      "cajoa/jsx-runtime": ["./packages/core/src/jsx-runtime.ts"],
+      "cajoa/jsx-dev-runtime": ["./packages/core/src/jsx-runtime.ts"]
     }
   },
-  "include": ["src", "tests", "playground"]
+  "include": ["packages/*/src", "tests", "playground"]
 }

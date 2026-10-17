@@ -1,5 +1,5 @@
-import { test, expect } from "vitest";
-import { createSignal, createEffect } from "../src";
+﻿import { test, expect } from "vitest";
+import { createSignal, createEffect } from "cajoa";
 
 test("effect re-runs when signal changes", () => {
   const [n, setN] = createSignal(0);

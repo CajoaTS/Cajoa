@@ -1,9 +1,9 @@
-import { test, expect } from "vitest";
-import { createSignal } from "../src/reactivity/signal";
-import { h } from "../src/dom/h";
-import { render } from "../src/dom/render";
-import { Show } from "../src/components/show";
-import { For } from "../src/components/for";
+﻿import { test, expect } from "vitest";
+import { createSignal } from "cajoa";
+import { h } from "cajoa";
+import { render } from "cajoa";
+import { Show } from "cajoa";
+import { For } from "cajoa";
 
 test("Show swaps content", () => {
   const [on, setOn] = createSignal(true);
