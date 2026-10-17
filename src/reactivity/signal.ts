@@ -2,6 +2,8 @@ type Cleanup = () => void;
 
 interface Owner {
   cleanups: Cleanup[];
+  parent: Owner | null;
+  context?: Map<symbol, unknown>;
 }
 
 interface Computation extends Owner {
@@ -72,6 +74,7 @@ export function createSignal<T>(value: T) {
 export function createEffect(fn: () => void) {
   const effect: Computation = {
     cleanups: [],
+    parent: currentOwner,
     deps: new Set(),
     disposed: false,
     run() {
@@ -104,7 +107,7 @@ export function onCleanup(fn: Cleanup) {
 }
 
 export function createRoot<T>(fn: (dispose: () => void) => T): T {
-  const root: Owner = { cleanups: [] };
+  const root: Owner = { cleanups: [], parent: currentOwner };
   const prevOwner = currentOwner;
   const prevEffect = currentEffect;
   currentOwner = root;
@@ -131,4 +134,36 @@ export function onMount(fn: () => void) {
       currentEffect = prevEffect;
     }
   });
+}
+
+export interface Context<T> {
+  readonly id: symbol;
+  readonly defaultValue: T;
+}
+
+export function createContext<T>(defaultValue: T): Context<T> {
+  return { id: Symbol("cajoa-context"), defaultValue };
+}
+
+export function provide<T, R>(ctx: Context<T>, value: T, fn: () => R): R {
+  const owner: Owner = {
+    cleanups: [],
+    parent: currentOwner,
+    context: new Map([[ctx.id, value]]),
+  };
+  onCleanup(() => clean(owner)); // lilinisin kapag nawala ang parent
+  const prev = currentOwner;
+  currentOwner = owner;
+  try {
+    return fn();
+  } finally {
+    currentOwner = prev;
+  }
+}
+
+export function useContext<T>(ctx: Context<T>): T {
+  for (let o = currentOwner; o; o = o.parent) {
+    if (o.context?.has(ctx.id)) return o.context.get(ctx.id) as T;
+  }
+  return ctx.defaultValue;
 }

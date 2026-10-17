@@ -64,16 +64,32 @@ function appendChildren(parent: HTMLElement, children: Child[]) {
       const start = document.createComment("");
       const end = document.createComment("");
       parent.append(start, end);
-
       createEffect(() => {
-        const nodes = toNodes(child());
-        while (start.nextSibling && start.nextSibling !== end) {
-          start.nextSibling.remove();
-        }
-        end.before(...nodes);
+        reconcile(start, end, toNodes(child()));
       });
     } else {
       parent.append(...toNodes(child));
     }
+  }
+}
+
+function reconcile(start: Node, end: Node, next: Node[]) {
+  const keep = new Set(next);
+
+  // 1. burahin ang mga lumang node na wala na sa bagong listahan
+  let cur = start.nextSibling;
+  while (cur && cur !== end) {
+    const after = cur.nextSibling;
+    if (!keep.has(cur)) (cur as ChildNode).remove();
+    cur = after;
+  }
+
+  // 2. ilagay o ilipat ang mga node sa tamang pagkakasunod-sunod
+  const parent = end.parentNode!;
+  let ref = start.nextSibling;
+  for (const node of next) {
+    if (node === ref)
+      ref = ref!.nextSibling; // nasa tamang pwesto na, walang galaw
+    else parent.insertBefore(node, ref);
   }
 }
