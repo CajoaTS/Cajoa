@@ -15,7 +15,7 @@ No virtual DOM, no hooks rules, no re-rendering components.
 ## Install
 
 ```bash
-npm install cajoa
+npm create cajoa@latest my-app
 ```
 
 ## Setup (JSX)
