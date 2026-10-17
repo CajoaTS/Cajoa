@@ -25,6 +25,25 @@ function cleanComputation(c: Computation) {
   clean(c); // run cleanups (tgt with the disposal of the children)
 }
 
+let batchDepth = 0;
+const pending = new Set<Computation>();
+
+function flush() {
+  const effects = [...pending];
+  pending.clear();
+  effects.forEach((effect) => effect.run());
+}
+
+export function batch<T>(fn: () => T): T {
+  batchDepth++;
+  try {
+    return fn();
+  } finally {
+    batchDepth--;
+    if (batchDepth === 0) flush();
+  }
+}
+
 export function createSignal<T>(value: T) {
   const subs = new Set<Computation>();
 
@@ -40,7 +59,11 @@ export function createSignal<T>(value: T) {
     const v = typeof next === "function" ? (next as any)(value) : next;
     if (Object.is(v, value)) return; // no changes, no update
     value = v;
-    [...subs].forEach((effect) => effect.run());
+    for (const effect of [...subs]) {
+      if (batchDepth > 0)
+        pending.add(effect); // itabi muna
+      else effect.run();
+    }
   };
 
   return [get, set] as const;
