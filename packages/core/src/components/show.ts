@@ -1,4 +1,4 @@
-import type { Child } from "../dom/h";
+﻿import type { Child } from "../runtime/h";
 import { createMemo } from "../reactivity/memo";
 import { untrack } from "../reactivity/signal";
 

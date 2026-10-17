@@ -10,7 +10,7 @@
     "dev": "vite --open /playground/",
     "build": "npm run build -w @cajoa/core && npm run build -w @cajoa/dom && npm run build -w cajoa",
     "test": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit && npm run typecheck -w @cajoa/core"
   },
   "author": "cjmgrc",
   "license": "Apache-2.0",

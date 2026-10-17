@@ -1,10 +1,10 @@
-export * from "./reactivity/signal";
+﻿export * from "./reactivity/signal";
 export * from "./reactivity/memo";
-export { h } from "./dom/h";
-export type { Child } from "./dom/h";
-export * from "./dom/render";
+export { h } from "./runtime/h";
+export type { Child } from "./runtime/h";
+export * from "./runtime/render";
 export * from "./components/show";
 export * from "./components/for";
 export * from "./jsx-runtime";
 export { setRenderer, getRenderer } from "./renderer";
-export type { Renderer } from "./renderer/types";
+export type { Renderer, HostNode } from "./renderer/types";

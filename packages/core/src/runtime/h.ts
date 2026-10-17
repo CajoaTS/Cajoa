@@ -1,5 +1,6 @@
-import { createEffect } from "../reactivity/signal";
+﻿import { createEffect } from "../reactivity/signal";
 import { getRenderer } from "../renderer";
+import type { HostNode } from "../renderer/types";
 
 export type Child =
   | string
@@ -7,7 +8,7 @@ export type Child =
   | boolean
   | null
   | undefined
-  | Node
+  | HostNode
   | (() => unknown)
   | Child[];
 
@@ -15,7 +16,7 @@ export function h(
   tag: string,
   props: Record<string, any> | null,
   ...children: Child[]
-): HTMLElement {
+): HostNode {
   const r = getRenderer();
   const el = r.createElement(tag);
 
@@ -27,7 +28,7 @@ export function h(
     }
   }
   appendChildren(el, children);
-  return el as HTMLElement;
+  return el as HostNode;
 }
 
 function toNodes(value: unknown): any[] {

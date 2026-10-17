@@ -1,13 +1,14 @@
-import { createRoot, onCleanup } from "../reactivity/signal";
+﻿import { createRoot, onCleanup } from "../reactivity/signal";
+import type { HostNode } from "../renderer/types";
 
 interface Entry {
-  node: Node;
+  node: HostNode;
   dispose: () => void;
 }
 
 export function For<T>(props: {
   each: () => T[];
-  children: (item: T, index: number) => Node;
+  children: (item: T, index: number) => HostNode;
   key?: (item: T, index: number) => unknown;
 }) {
   let cache = new Map<unknown, Entry>();
@@ -20,7 +21,7 @@ export function For<T>(props: {
   return () => {
     const items = props.each();
     const next = new Map<unknown, Entry>();
-    const nodes: Node[] = [];
+    const nodes: HostNode[] = [];
 
     items.forEach((item, i) => {
       const k = props.key ? props.key(item, i) : item;
