@@ -1,13 +1,14 @@
 # Cajoa
 
-A small, beginner-friendly frontend framework built on **signals**.
+A small, beginner-friendly frontend framework built on **signals** and **JSX**.
 No virtual DOM, no hooks rules, no re-rendering components.
 
-> ⚠️ **v0.2 (early stage).** The API may still change. Not production-ready yet.
+> ⚠️ **v0.3 (early stage).** The API may still change. Not production-ready yet.
 
 ## Why Cajoa?
 
 - **Components run once.** A component is just a function that builds DOM. Only the parts that depend on a signal update.
+- **Plain JSX.** Write `<button onClick={...}>`, no special syntax to learn.
 - **Tiny and readable.** The whole core is small enough to read in one sitting.
 - **TypeScript-first**, ESM + CommonJS, zero runtime dependencies.
 
@@ -17,52 +18,66 @@ No virtual DOM, no hooks rules, no re-rendering components.
 npm install cajoa
 ```
 
+## Setup (JSX)
+
+In your `tsconfig.json`:
+
+```json
+{
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "cajoa"
+  }
+}
+```
+
+If you use Vite and your JSX is not transformed, also set it in `vite.config.ts`
+(`oxc: { jsx: { runtime: "automatic", importSource: "cajoa" } }` on newer Vite,
+or `esbuild: { jsx: "automatic", jsxImportSource: "cajoa" }` on older ones).
+
 ## Quick start
 
-```ts
-import { createSignal, h, render } from "cajoa";
+```tsx
+import { createSignal, render } from "cajoa";
 
 function Counter() {
   const [count, setCount] = createSignal(0);
 
-  return h(
-    "button",
-    { onClick: () => setCount((c) => c + 1) },
-    "Clicked ",
-    count,
-    " times",
+  return (
+    <button onClick={() => setCount((c) => c + 1)}>
+      Clicked {count} times
+    </button>
   );
 }
 
 render(Counter, document.getElementById("app")!);
 ```
 
-Passing `count` (the function itself, not `count()`) is what makes that part of the DOM reactive.
+## Two rules to remember
+
+Cajoa has no compiler, so JSX expressions run exactly once. That gives two rules:
+
+1. **Pass the signal, don't call it.**
+   `{count}` is reactive. `{count()}` is read once and never updates.
+   For computed values, pass a function: `{() => count() * 2}`.
+2. **`Show` children are a function.**
+   `<Show when={on}>{() => <p>Hello</p>}</Show>`
+   Otherwise the element is created even when it is hidden.
 
 ## Lists and conditions
 
-```ts
-import { createSignal, h, Show, For } from "cajoa";
+```tsx
+import { createSignal, Show, For } from "cajoa";
 
 const [todos, setTodos] = createSignal([{ id: 1, text: "Learn Cajoa" }]);
 
-h(
-  "div",
-  null,
-  Show({
-    when: () => todos().length > 0,
-    fallback: () => h("p", null, "Nothing to do."),
-    children: () =>
-      h(
-        "ul",
-        null,
-        For({
-          each: todos,
-          children: (todo) => h("li", null, todo.text),
-        }),
-      ),
-  }),
-);
+<Show when={() => todos().length > 0} fallback={() => <p>Nothing to do.</p>}>
+  {() => (
+    <ul>
+      <For each={todos}>{(todo) => <li>{todo.text}</li>}</For>
+    </ul>
+  )}
+</Show>;
 ```
 
 ## API
@@ -76,14 +91,19 @@ h(
 | `createMemo(fn)`      | Cached computed value. Only notifies when the result changes.                                                          |
 | `batch(fn)`           | Groups several `set` calls into one update.                                                                            |
 
-### DOM
+### Components
 
-| Function                             | What it does                                                                           |
-| ------------------------------------ | -------------------------------------------------------------------------------------- |
-| `h(tag, props, ...children)`         | Creates a real DOM element. Function props/children are reactive.                      |
-| `render(component, container)`       | Mounts a component. Returns a `dispose` function.                                      |
-| `Show({ when, children, fallback })` | Conditional rendering.                                                                 |
-| `For({ each, children, key? })`      | List rendering. Reuses DOM nodes for unchanged items. `children` must return a `Node`. |
+| Component              | What it does                                                                                         |
+| ---------------------- | ---------------------------------------------------------------------------------------------------- |
+| `<Show when fallback>` | Conditional rendering. `children` and `fallback` are functions.                                      |
+| `<For each key?>`      | List rendering. Reuses DOM nodes for unchanged items. The child is a function that returns a `Node`. |
+
+### Rendering
+
+| Function                       | What it does                                      |
+| ------------------------------ | ------------------------------------------------- |
+| `render(component, container)` | Mounts a component. Returns a `dispose` function. |
+| `h(tag, props, ...children)`   | Low-level element creator. JSX compiles to this.  |
 
 ### Lifecycle
 
@@ -109,7 +129,7 @@ h(
 
 ## Known limitations
 
-- No JSX support yet (`h()` only).
+- No Fragments (`<>...</>`) yet. Wrap siblings in an element.
 - No SSR.
 - `createMemo` can show a brief inconsistent state when memos depend on each other.
 - `set` calls are not batched automatically inside event handlers. Wrap them in `batch()`.
@@ -117,13 +137,14 @@ h(
 ## Roadmap
 
 - [x] Signals and effects
-- [x] DOM bindings (`h`, `render`)
-- [x] `Show`, `For`
-- [x] Lifecycle (`onMount`, `onCleanup`) and disposal
+- [x] DOM bindings and `render`
+- [x] `Show`, `For` (keyed)
+- [x] Lifecycle and disposal
 - [x] `createMemo`, `batch`
-- [x] Keyed `For`
 - [x] Context
-- [ ] JSX support
+- [x] JSX support
+- [ ] Fragments
+- [ ] Vite plugin (removes the two rules above)
 - [ ] Router
 - [ ] SSR
 
