@@ -6,3 +6,4 @@ export * from "./components/for";
 export * from "./reactivity/memo";
 export * from "./jsx-runtime";
 export type { Child } from "./dom/h";
+export * from "./router";

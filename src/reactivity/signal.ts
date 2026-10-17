@@ -167,3 +167,13 @@ export function useContext<T>(ctx: Context<T>): T {
   }
   return ctx.defaultValue;
 }
+
+export function untrack<T>(fn: () => T): T {
+  const prev = currentEffect;
+  currentEffect = null;
+  try {
+    return fn();
+  } finally {
+    currentEffect = prev;
+  }
+}

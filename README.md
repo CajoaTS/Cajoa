@@ -80,6 +80,32 @@ const [todos, setTodos] = createSignal([{ id: 1, text: "Learn Cajoa" }]);
 </Show>;
 ```
 
+## Routing
+
+```tsx
+import { render, Router, Route, Link, useParams } from "cajoa";
+
+const User = () => <h1>User {useParams().id}</h1>;
+
+render(
+  () => (
+    <div>
+      <nav>
+        <Link href="/">Home</Link> <Link href="/users/7">User 7</Link>
+      </nav>
+      <Router>
+        <Route path="/" component={() => <h1>Home</h1>} />
+        <Route path="/users/:id" component={User} />
+        <Route path="*" component={() => <h1>Not found</h1>} />
+      </Router>
+    </div>
+  ),
+  document.getElementById("app")!,
+);
+```
+
+Routes are matched in order, so put `path="*"` last.
+
 ## API
 
 ### Reactivity
@@ -121,6 +147,18 @@ const [todos, setTodos] = createSignal([{ id: 1, text: "Learn Cajoa" }]);
 | `provide(ctx, value, fn)` | Runs `fn`; everything created inside can read `value`. |
 | `useContext(ctx)`         | Reads the nearest provided value (or the default).     |
 
+### Router
+
+| Function                     | What it does                                               |
+| ---------------------------- | ---------------------------------------------------------- |
+| `<Router>`                   | Renders the first `<Route>` that matches the current path. |
+| `<Route path component>`     | Maps a path (`/users/:id`, `*`) to a component.            |
+| `<Link href>`                | An `<a>` that navigates without reloading the page.        |
+| `navigate(to, { replace? })` | Navigates programmatically.                                |
+| `useParams()`                | Reads the route params (`{ id: "7" }`).                    |
+| `usePath()`                  | Returns a signal getter for the current pathname.          |
+| `untrack(fn)`                | Runs `fn` without subscribing to signals.                  |
+
 ## Good to know
 
 - `For` uses the item itself as the key by default. If you pass `key`, items with the same key are **not** re-rendered when their data changes, so keys must be unique and the item should hold its own signals if it needs to update.
@@ -133,6 +171,9 @@ const [todos, setTodos] = createSignal([{ id: 1, text: "Learn Cajoa" }]);
 - No SSR.
 - `createMemo` can show a brief inconsistent state when memos depend on each other.
 - `set` calls are not batched automatically inside event handlers. Wrap them in `batch()`.
+- Router: pathname only (no query/hash handling), no nested routes, no `base` path.
+- `<Router>` (like `<Show>`) must be inside an element, not the root returned by `render`.
+- Single-page apps need a server fallback to `index.html` for unknown paths.
 
 ## Roadmap
 
