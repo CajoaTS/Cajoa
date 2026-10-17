@@ -3,7 +3,7 @@
 A small, beginner-friendly frontend framework built on **signals** and **JSX**.
 No virtual DOM, no hooks rules, no re-rendering components.
 
-> ⚠️ **v0.5 (early stage).** The API may still change. Not production-ready yet.
+> ⚠️ **v0.6 (early stage).** The API may still change. Not production-ready yet.
 
 ## Why Cajoa?
 
@@ -166,6 +166,14 @@ Routes are matched in order, so put `path="*"` last.
 | `setRenderer(renderer)` | Swaps the renderer (default: DOM). Used to target other platforms. |
 | `getRenderer()`         | Returns the current renderer.                                      |
 | `domRenderer`           | The built-in DOM renderer.                                         |
+
+## Packages
+
+| Package       | What it is                                                           |
+| ------------- | -------------------------------------------------------------------- |
+| `cajoa`       | The package most apps install (core + DOM)                           |
+| `@cajoa/core` | Renderer-agnostic core: signals, JSX runtime, `Show`, `For`, context |
+| `@cajoa/dom`  | DOM renderer and router                                              |
 
 ## Good to know
 
