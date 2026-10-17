@@ -1,5 +1,5 @@
-import { test, expect } from "vitest";
-import { createSignal, h, render, For } from "../src";
+﻿import { test, expect } from "vitest";
+import { createSignal, h, render, For } from "cajoa";
 
 const make = () => {
   const a = { t: "a" },

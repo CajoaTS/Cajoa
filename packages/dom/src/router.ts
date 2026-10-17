@@ -4,9 +4,9 @@ import {
   provide,
   useContext,
   untrack,
-} from "./reactivity/signal";
-import { h } from "./dom/h";
-import type { Child } from "./dom/h";
+  h,
+  type Child,
+} from "@cajoa/core";
 
 const read = () => (typeof location === "undefined" ? "/" : location.pathname);
 const [path, setPath] = createSignal(read());

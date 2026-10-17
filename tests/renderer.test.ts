@@ -1,4 +1,4 @@
-import { test, expect, afterEach } from "vitest";
+﻿import { test, expect, afterEach } from "vitest";
 import {
   createSignal,
   h,
@@ -7,7 +7,7 @@ import {
   setRenderer,
   domRenderer,
   type Renderer,
-} from "../src";
+} from "cajoa";
 
 interface FNode {
   kind: "el" | "text" | "marker" | "frag";

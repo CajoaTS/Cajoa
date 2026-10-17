@@ -1,0 +1,49 @@
+{
+  "name": "@cajoa/dom",
+  "version": "0.6.0",
+  "description": "Cajoa for the browser: DOM renderer and router.",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": true,
+  "peerDependencies": {
+    "@cajoa/core": "^0.6.0"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --clean"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CajoaTS/Cajoa.git",
+    "directory": "packages/dom"
+  },
+  "keywords": [
+    "frontend",
+    "framework",
+    "dom",
+    "router",
+    "cajoa"
+  ],
+  "author": "cjmgrc",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/CajoaTS/Cajoa/issues"
+  },
+  "homepage": "https://github.com/CajoaTS/Cajoa#readme"
+}

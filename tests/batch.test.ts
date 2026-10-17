@@ -1,5 +1,5 @@
-import { test, expect } from "vitest";
-import { createSignal, createEffect, batch } from "../src";
+﻿import { test, expect } from "vitest";
+import { createSignal, createEffect, batch } from "cajoa";
 
 test("without batch, effect runs per set", () => {
   const [a, setA] = createSignal(1);

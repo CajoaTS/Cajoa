@@ -1,4 +1,4 @@
-import { test, expect, beforeEach } from "vitest";
+﻿import { test, expect, beforeEach } from "vitest";
 import {
   createSignal,
   render,
@@ -7,7 +7,7 @@ import {
   Link,
   navigate,
   useParams,
-} from "../src";
+} from "cajoa";
 
 beforeEach(() => navigate("/"));
 

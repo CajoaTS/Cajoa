@@ -9,9 +9,14 @@ export default defineConfig({
     alias: [
       {
         find: /^cajoa\/jsx(-dev)?-runtime$/,
-        replacement: p("./src/jsx-runtime.ts"),
+        replacement: p("./packages/core/src/jsx-runtime.ts"),
       },
-      { find: /^cajoa$/, replacement: p("./src/index.ts") },
+      { find: /^cajoa$/, replacement: p("./packages/cajoa/src/index.ts") },
+      {
+        find: /^@cajoa\/core$/,
+        replacement: p("./packages/core/src/index.ts"),
+      },
+      { find: /^@cajoa\/dom$/, replacement: p("./packages/dom/src/index.ts") },
     ],
   },
   test: { environment: "jsdom" },
