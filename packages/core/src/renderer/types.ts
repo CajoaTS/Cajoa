@@ -1,7 +1,8 @@
+﻿export type HostNode = object;
 export interface Renderer<N = any> {
   createElement(tag: string): N;
   createText(value: string): N;
-  createMarker(): N; 
+  createMarker(): N;
   createFragment(): N; // children's node container
   isNode(value: unknown): value is N;
   insert(parent: N, node: N, anchor?: N | null): void; // if no anchor = add sa last

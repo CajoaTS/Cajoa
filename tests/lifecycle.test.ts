@@ -92,7 +92,7 @@ test("onMount runs after render", async () => {
   let attached = false;
 
   render(() => {
-    const el = h("p", null, "hi");
+    const el = h("p", null, "hi") as HTMLElement;
     onMount(() => {
       attached = el.parentElement === root;
     });

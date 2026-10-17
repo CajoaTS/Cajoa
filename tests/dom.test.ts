@@ -16,7 +16,11 @@ test("text updates when signal changes", () => {
 
 test("click handler updates the UI", () => {
   const [count, setCount] = createSignal(0);
-  const btn = h("button", { onClick: () => setCount(count() + 1) }, count);
+  const btn = h(
+    "button",
+    { onClick: () => setCount(count() + 1) },
+    count,
+  ) as HTMLButtonElement;
 
   btn.click();
   btn.click();

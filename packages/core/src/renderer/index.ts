@@ -1,4 +1,4 @@
-import type { Renderer } from "./types";
+﻿import type { Renderer } from "./types";
 
 let current: Renderer | null = null;
 

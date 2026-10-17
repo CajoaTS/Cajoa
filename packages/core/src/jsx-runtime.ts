@@ -1,4 +1,4 @@
-import { h, appendChildren, type Child } from "./dom/h";
+﻿import { h, appendChildren, type Child } from "./runtime/h";
 import { getRenderer } from "./renderer";
 
 export function jsx(type: any, props: Record<string, any> | null) {

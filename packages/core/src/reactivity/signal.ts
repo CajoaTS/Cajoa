@@ -1,4 +1,4 @@
-type Cleanup = () => void;
+﻿type Cleanup = () => void;
 
 interface Owner {
   cleanups: Cleanup[];
@@ -122,7 +122,7 @@ export function createRoot<T>(fn: (dispose: () => void) => T): T {
 
 export function onMount(fn: () => void) {
   const owner = currentOwner;
-  queueMicrotask(() => {
+  Promise.resolve().then(() => {
     const prevOwner = currentOwner;
     const prevEffect = currentEffect;
     currentOwner = owner; // to make the onCleanup work inside the onMount
