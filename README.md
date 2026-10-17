@@ -186,7 +186,7 @@ Routes are matched in order, so put `path="*"` last.
 - [x] JSX support
 - [x] Fragments
 - [ ] Vite plugin (removes the two rules above)
-- [ ] Router
+- [x] Router
 - [ ] SSR
 
 ## Development
