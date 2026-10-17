@@ -49,7 +49,7 @@ function toNodes(value: unknown): Node[] {
   return out;
 }
 
-function appendChildren(parent: HTMLElement, children: Child[]) {
+export function appendChildren(parent: ParentNode, children: Child[]) {
   const pending: Child[] = [...children].reverse();
   while (pending.length > 0) {
     const child = pending.pop()!;

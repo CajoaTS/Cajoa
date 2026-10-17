@@ -126,10 +126,10 @@ const [todos, setTodos] = createSignal([{ id: 1, text: "Learn Cajoa" }]);
 - `For` uses the item itself as the key by default. If you pass `key`, items with the same key are **not** re-rendered when their data changes, so keys must be unique and the item should hold its own signals if it needs to update.
 - `useContext` only works while a component is being created (or inside `onMount` / effects). Read it at the top of your component and use the value later in handlers.
 - Updating an object in place will not trigger effects. Set a new object instead.
+- Fragments (`<>...</>`) work anywhere, but inside `<For>` the child must be a single element (not a fragment), because `For` reuses that node.
 
 ## Known limitations
 
-- No Fragments (`<>...</>`) yet. Wrap siblings in an element.
 - No SSR.
 - `createMemo` can show a brief inconsistent state when memos depend on each other.
 - `set` calls are not batched automatically inside event handlers. Wrap them in `batch()`.
@@ -143,7 +143,7 @@ const [todos, setTodos] = createSignal([{ id: 1, text: "Learn Cajoa" }]);
 - [x] `createMemo`, `batch`
 - [x] Context
 - [x] JSX support
-- [ ] Fragments
+- [x] Fragments
 - [ ] Vite plugin (removes the two rules above)
 - [ ] Router
 - [ ] SSR

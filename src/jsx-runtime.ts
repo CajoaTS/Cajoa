@@ -1,4 +1,4 @@
-import { h } from "./dom/h";
+import { h, appendChildren, type Child } from "./dom/h";
 
 export function jsx(type: any, props: Record<string, any> | null) {
   // Component: tawagin nang isang beses lang
@@ -21,4 +21,10 @@ export declare namespace JSX {
   interface ElementChildrenAttribute {
     children: {};
   }
+}
+
+export function Fragment(props: { children?: Child }) {
+  const frag = document.createDocumentFragment();
+  appendChildren(frag, props.children === undefined ? [] : [props.children]);
+  return frag;
 }
