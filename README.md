@@ -3,7 +3,7 @@
 A small, beginner-friendly frontend framework built on **signals** and **JSX**.
 No virtual DOM, no hooks rules, no re-rendering components.
 
-> ⚠️ **v0.3 (early stage).** The API may still change. Not production-ready yet.
+> ⚠️ **v0.4 (early stage).** The API may still change. Not production-ready yet.
 
 ## Why Cajoa?
 
@@ -164,16 +164,16 @@ Routes are matched in order, so put `path="*"` last.
 - `For` uses the item itself as the key by default. If you pass `key`, items with the same key are **not** re-rendered when their data changes, so keys must be unique and the item should hold its own signals if it needs to update.
 - `useContext` only works while a component is being created (or inside `onMount` / effects). Read it at the top of your component and use the value later in handlers.
 - Updating an object in place will not trigger effects. Set a new object instead.
-- Fragments (`<>...</>`) work anywhere, but inside `<For>` the child must be a single element (not a fragment), because `For` reuses that node.
+- Fragments (`<>...</>`) work anywhere, but inside `<For>` the child must be a single element, because `For` reuses that node.
 
 ## Known limitations
 
 - No SSR.
+- Router: pathname only (no query/hash handling), no nested routes, no `base` path.
+- `<Show>` and `<Router>` return a function, so they must sit inside an element, not be the root returned by `render`.
+- Single-page apps need a server fallback to `index.html` for unknown paths.
 - `createMemo` can show a brief inconsistent state when memos depend on each other.
 - `set` calls are not batched automatically inside event handlers. Wrap them in `batch()`.
-- Router: pathname only (no query/hash handling), no nested routes, no `base` path.
-- `<Router>` (like `<Show>`) must be inside an element, not the root returned by `render`.
-- Single-page apps need a server fallback to `index.html` for unknown paths.
 
 ## Roadmap
 
