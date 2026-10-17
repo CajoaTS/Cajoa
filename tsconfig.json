@@ -6,7 +6,14 @@
     "lib": ["ES2022", "DOM"],
     "strict": true,
     "declaration": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "cajoa",
+    "paths": {
+      "cajoa": ["./src/index.ts"],
+      "cajoa/jsx-runtime": ["./src/jsx-runtime.ts"],
+      "cajoa/jsx-dev-runtime": ["./src/jsx-runtime.ts"]
+    }
   },
-  "include": ["src", "tests"]
+  "include": ["src", "tests", "playground"]
 }

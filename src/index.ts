@@ -4,3 +4,4 @@ export * from "./dom/render";
 export * from "./components/show";
 export * from "./components/for";
 export * from "./reactivity/memo";
+export * from "./jsx-runtime";
