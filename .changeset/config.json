@@ -4,7 +4,7 @@
   "access": "public",
   "format": "auto",
   "changelog": "@changesets/cli/changelog",
-  "commit": false,
+  "commit": true,
   "ignore": [],
   "fixed": [["cajoa", "@cajoa/core", "@cajoa/dom"]],
   "linked": [],
