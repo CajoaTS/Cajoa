@@ -18,6 +18,9 @@
       }
     }
   },
+  "engines": {
+    "node": ">=18"
+  },
   "files": [
     "dist"
   ],
@@ -26,7 +29,8 @@
     "@cajoa/core": "^0.6.0"
   },
   "scripts": {
-    "build": "tsup src/index.ts --format esm,cjs --dts --clean"
+    "build": "tsup src/index.ts --format esm,cjs --dts --clean",
+    "check:package": "publint && attw --pack ."
   },
   "repository": {
     "type": "git",

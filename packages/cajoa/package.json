@@ -8,33 +8,78 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
-      "require": { "types": "./dist/index.d.cts", "default": "./dist/index.cjs" }
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
     },
     "./jsx-runtime": {
-      "import": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
-      "require": { "types": "./dist/index.d.cts", "default": "./dist/index.cjs" }
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
     },
     "./jsx-dev-runtime": {
-      "import": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
-      "require": { "types": "./dist/index.d.cts", "default": "./dist/index.cjs" }
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
     }
   },
-  "files": ["dist"],
+  "typesVersions": {
+    "*": {
+      "jsx-runtime": [
+        "./dist/index.d.ts"
+      ],
+      "jsx-dev-runtime": [
+        "./dist/index.d.ts"
+      ]
+    }
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "dist"
+  ],
   "sideEffects": true,
   "dependencies": {
     "@cajoa/core": "^0.6.0",
     "@cajoa/dom": "^0.6.0"
   },
-  "scripts": { "build": "tsup src/index.ts --format esm,cjs --dts --clean" },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --clean",
+    "check:package": "publint && attw --pack ."
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/CajoaTS/Cajoa.git",
     "directory": "packages/cajoa"
   },
-  "keywords": ["frontend", "framework", "signals", "reactive", "ui", "cajoa"],
+  "keywords": [
+    "frontend",
+    "framework",
+    "signals",
+    "reactive",
+    "ui",
+    "cajoa"
+  ],
   "author": "cjmgrc",
   "license": "Apache-2.0",
-  "bugs": { "url": "https://github.com/CajoaTS/Cajoa/issues" },
+  "bugs": {
+    "url": "https://github.com/CajoaTS/Cajoa/issues"
+  },
   "homepage": "https://github.com/CajoaTS/Cajoa#readme"
 }
