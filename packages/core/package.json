@@ -38,13 +38,27 @@
       }
     }
   },
+  "typesVersions": {
+    "*": {
+      "jsx-runtime": [
+        "./dist/index.d.ts"
+      ],
+      "jsx-dev-runtime": [
+        "./dist/index.d.ts"
+      ]
+    }
+  },
+  "engines": {
+    "node": ">=18"
+  },
   "files": [
     "dist"
   ],
   "sideEffects": false,
   "scripts": {
     "build": "tsup src/index.ts --format esm,cjs --dts --clean",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "check:package": "publint && attw --pack ."
   },
   "repository": {
     "type": "git",
