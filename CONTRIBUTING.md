@@ -1,0 +1,37 @@
+# Contributing
+
+## Setup
+
+```bash
+npm install
+npm run verify   # typecheck, tests, build, sync checks, package checks
+npm run dev      # playground
+```
+
+## Making a change
+
+1. Branch from `main` and open a pull request. Do not push to `main` directly.
+2. Add tests for your change.
+3. Run `npm run changeset` and describe the change. Use `minor` while we are on 0.x,
+   even for breaking changes. `cajoa`, `@cajoa/core` and `@cajoa/dom` always share one version.
+4. If the change affects what new projects get, add a changeset for `create-cajoa` too.
+5. CI runs `npm run verify` on Node 20, 22 and 24.
+
+## Releasing
+
+Releases are automated. Do not run `npm publish` by hand.
+
+1. Merge PRs that include changesets into `main`.
+2. The Release workflow opens a "chore: version packages" PR. It bumps versions,
+   updates changelogs, and syncs the README and the starter template.
+3. If CI is waiting for approval on that PR, click "Approve and run".
+4. Merge it. The workflow publishes to npm with provenance.
+
+## Layout
+
+- `packages/core` (`@cajoa/core`): renderer-agnostic core
+- `packages/dom` (`@cajoa/dom`): DOM renderer and router
+- `packages/cajoa` (`cajoa`): umbrella package most people install
+- `create-cajoa`: starter (`npm create cajoa@latest`)
+- The root `README.md` and `LICENSE` are copied into packages by `npm run sync`.
+- The starter template's `cajoa` version is set by `npm run sync:create`.

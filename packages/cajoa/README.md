@@ -3,22 +3,34 @@
 A small, beginner-friendly frontend framework built on **signals** and **JSX**.
 No virtual DOM, no hooks rules, no re-rendering components.
 
-> ⚠️ **v0.6 (early stage).** The API may still change. Not production-ready yet.
+> ⚠️ **Early stage.** The API may still change before 1.0.
 
 ## Why Cajoa?
 
 - **Components run once.** A component is just a function that builds DOM. Only the parts that depend on a signal update.
 - **Plain JSX.** Write `<button onClick={...}>`, no special syntax to learn.
-- **Tiny and readable.** The whole core is small enough to read in one sitting.
+- **Tiny and readable.** The core is small enough to read in one sitting.
+- **Renderer-agnostic core.** `@cajoa/core` has no DOM dependency, so other targets (native, SSR) can plug in their own renderer.
 - **TypeScript-first**, ESM + CommonJS, zero runtime dependencies.
 
-## Install
+## Get started
+
+The fastest way is the starter:
 
 ```bash
 npm create cajoa@latest my-app
+cd my-app
+npm install
+npm run dev
 ```
 
-## Setup (JSX)
+Or add Cajoa to an existing project:
+
+```bash
+npm install cajoa
+```
+
+### Manual JSX setup
 
 In your `tsconfig.json`:
 
@@ -31,7 +43,7 @@ In your `tsconfig.json`:
 }
 ```
 
-If you use Vite and your JSX is not transformed, also set it in `vite.config.ts`
+With Vite, also set it in `vite.config.ts`
 (`oxc: { jsx: { runtime: "automatic", importSource: "cajoa" } }` on newer Vite,
 or `esbuild: { jsx: "automatic", jsxImportSource: "cajoa" }` on older ones).
 
@@ -55,7 +67,7 @@ render(Counter, document.getElementById("app")!);
 
 ## Two rules to remember
 
-Cajoa has no compiler, so JSX expressions run exactly once. That gives two rules:
+Cajoa has no compiler yet, so JSX expressions run exactly once. That gives two rules:
 
 1. **Pass the signal, don't call it.**
    `{count}` is reactive. `{count()}` is read once and never updates.
@@ -106,6 +118,15 @@ render(
 
 Routes are matched in order, so put `path="*"` last.
 
+## Packages
+
+| Package        | What it is                                                                                 |
+| -------------- | ------------------------------------------------------------------------------------------ |
+| `cajoa`        | The package most apps install (core + DOM)                                                 |
+| `@cajoa/core`  | Renderer-agnostic core: signals, JSX runtime, `Show`, `For`, context, `Renderer` interface |
+| `@cajoa/dom`   | DOM renderer and router                                                                    |
+| `create-cajoa` | Project starter (`npm create cajoa@latest`)                                                |
+
 ## API
 
 ### Reactivity
@@ -116,13 +137,15 @@ Routes are matched in order, so put `path="*"` last.
 | `createEffect(fn)`    | Runs `fn` now and again whenever a signal it read changes.                                                             |
 | `createMemo(fn)`      | Cached computed value. Only notifies when the result changes.                                                          |
 | `batch(fn)`           | Groups several `set` calls into one update.                                                                            |
+| `untrack(fn)`         | Runs `fn` without subscribing to signals.                                                                              |
 
 ### Components
 
-| Component              | What it does                                                                                         |
-| ---------------------- | ---------------------------------------------------------------------------------------------------- |
-| `<Show when fallback>` | Conditional rendering. `children` and `fallback` are functions.                                      |
-| `<For each key?>`      | List rendering. Reuses DOM nodes for unchanged items. The child is a function that returns a `Node`. |
+| Component              | What it does                                                                                              |
+| ---------------------- | --------------------------------------------------------------------------------------------------------- |
+| `<Show when fallback>` | Conditional rendering. `children` and `fallback` are functions.                                           |
+| `<For each key?>`      | List rendering. Reuses DOM nodes for unchanged items. The child is a function that returns a single node. |
+| `<>...</>` (Fragment)  | Groups siblings without a wrapper element.                                                                |
 
 ### Rendering
 
@@ -157,7 +180,6 @@ Routes are matched in order, so put `path="*"` last.
 | `navigate(to, { replace? })` | Navigates programmatically.                                |
 | `useParams()`                | Reads the route params (`{ id: "7" }`).                    |
 | `usePath()`                  | Returns a signal getter for the current pathname.          |
-| `untrack(fn)`                | Runs `fn` without subscribing to signals.                  |
 
 ### Renderer
 
@@ -167,20 +189,12 @@ Routes are matched in order, so put `path="*"` last.
 | `getRenderer()`         | Returns the current renderer.                                      |
 | `domRenderer`           | The built-in DOM renderer.                                         |
 
-## Packages
-
-| Package       | What it is                                                           |
-| ------------- | -------------------------------------------------------------------- |
-| `cajoa`       | The package most apps install (core + DOM)                           |
-| `@cajoa/core` | Renderer-agnostic core: signals, JSX runtime, `Show`, `For`, context |
-| `@cajoa/dom`  | DOM renderer and router                                              |
-
 ## Good to know
 
 - `For` uses the item itself as the key by default. If you pass `key`, items with the same key are **not** re-rendered when their data changes, so keys must be unique and the item should hold its own signals if it needs to update.
-- `useContext` only works while a component is being created (or inside `onMount` / effects). Read it at the top of your component and use the value later in handlers.
+- Inside `<For>`, return a single element (not a fragment), because `For` reuses that node.
+- `useContext` and `useParams` only work while a component is being created (or inside `onMount` / effects). Read them at the top of your component and use the value later in handlers.
 - Updating an object in place will not trigger effects. Set a new object instead.
-- Fragments (`<>...</>`) work anywhere, but inside `<For>` the child must be a single element, because `For` reuses that node.
 
 ## Known limitations
 
@@ -188,26 +202,25 @@ Routes are matched in order, so put `path="*"` last.
 - Router: pathname only (no query/hash handling), no nested routes, no `base` path.
 - `<Show>` and `<Router>` return a function, so they must sit inside an element, not be the root returned by `render`.
 - Single-page apps need a server fallback to `index.html` for unknown paths.
+- The DOM renderer sets props as attributes: `style` must be a string, and live `value` / `checked` bindings on form controls are not supported yet.
 - `createMemo` can show a brief inconsistent state when memos depend on each other.
 - `set` calls are not batched automatically inside event handlers. Wrap them in `batch()`.
-- The Router and event names (`onClick`) are still web-specific for now.
+- Types in the core use a loose `HostNode` type for now.
 
 ## Roadmap
 
-- [x] Signals and effects
-- [x] DOM bindings and `render`
-- [x] `Show`, `For` (keyed)
-- [x] Lifecycle and disposal
-- [x] `createMemo`, `batch`
-- [x] Context
+- [x] Signals, effects, memo, batch
+- [x] DOM bindings, `Show`, keyed `For`, Fragments
+- [x] Lifecycle, context
 - [x] JSX support
-- [x] Fragments
 - [x] Router
-- [x] Renderer abstraction (core no longer depends on DOM)
-- [ ] Split into packages ('@cajoa/core', '@cajoa/dom')
+- [x] Renderer abstraction, split into packages
+- [x] Automated releases
 - [ ] Vite plugin (removes the two rules above)
-- [ ] Native renderer (mobile, desktop)
+- [ ] Better form and style handling in the DOM renderer
+- [ ] Native renderers (mobile, desktop)
 - [ ] SSR
+- [ ] Docs site
 
 ## Development
 
@@ -215,8 +228,10 @@ Routes are matched in order, so put `path="*"` last.
 npm install
 npm test          # run tests
 npm run dev       # open the playground
-npm run build     # build to dist/
+npm run verify    # typecheck, tests, build, sync and package checks
 ```
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for the release flow.
 
 ## License
 

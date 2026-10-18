@@ -26,6 +26,7 @@ jobs:
       - run: npm install -g npm@latest
       - run: npm ci
       - uses: changesets/action@v1
+        id: changesets
         with:
           version: npm run version-packages
           publish: npm run release
@@ -33,3 +34,7 @@ jobs:
           commit: "chore: version packages"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push tags
+        if: steps.changesets.outputs.published == 'true'
+        run: git push origin --tags

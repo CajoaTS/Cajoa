@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "create-cajoa"
   ],
   "scripts": {
     "dev": "vite --open /playground/",
@@ -12,11 +13,12 @@
     "test": "vitest",
     "typecheck": "tsc --noEmit && npm run typecheck -w @cajoa/core",
     "sync": "node scripts/sync-readme.mjs",
-    "check:sync": "node scripts/sync-readme.mjs --check",
+    "sync:create": "node scripts/sync-create-cajoa.mjs",
+    "check:sync": "node scripts/sync-readme.mjs --check && node scripts/sync-create-cajoa.mjs --check",
     "check:packages": "npm run check:package -w @cajoa/core -w @cajoa/dom -w cajoa",
     "verify": "npm run typecheck && vitest run && npm run build && npm run check:sync && npm run check:packages",
     "changeset": "changeset",
-    "version-packages": "changeset version && npm run sync && npm install --package-lock-only",
+    "version-packages": "changeset version && npm run sync && npm run sync:create && npm install --package-lock-only",
     "release": "npm run verify && changeset publish"
   },
   "author": "cjmgrc",
