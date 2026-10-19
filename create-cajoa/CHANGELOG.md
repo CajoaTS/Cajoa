@@ -1,5 +1,11 @@
 # create-cajoa
 
+## 0.2.2
+
+### Patch Changes
+
+- f2e123a: Template uses cajoa 0.9.
+
 ## 0.2.1
 
 ### Patch Changes
