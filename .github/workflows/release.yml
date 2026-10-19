@@ -36,5 +36,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Push tags
-        if: steps.changesets.outputs.published == 'true'
         run: git push origin --tags
