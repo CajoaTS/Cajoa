@@ -94,6 +94,37 @@ const [todos, setTodos] = createSignal([{ id: 1, text: "Learn Cajoa" }]);
 
 ## Routing
 
+## Forms, styles and events
+
+```tsx
+const [name, setName] = createSignal("");
+const [agree, setAgree] = createSignal(false);
+
+<form>
+  <input
+    placeholder="Name"
+    value={name}
+    onInput={(e) => setName(e.target.value)}
+  />
+  <label>
+    <input
+      type="checkbox"
+      checked={agree}
+      onChange={(e) => setAgree(e.target.checked)}
+    />
+    I agree
+  </label>
+  <p style={() => ({ color: agree() ? "green" : "gray", fontSize: "18px" })}>
+    Hello, {() => name() || "stranger"}!
+  </p>
+</form>;
+```
+
+- `value`, `checked` and `selected` are set as DOM properties, so they stay in sync even after the user typed. Write `value` after `type`, `min` and `max`.
+- `style` takes a string or an object (camelCase keys, kebab-case keys, or custom properties like `--accent`). Numbers are not converted to `px`, so write `"12px"`. For a reactive style, pass a function: `style={() => ({ color: color() })}`. An object with signals inside, like `style={{ color: color() }}`, is read once.
+- Events are native DOM events. `onChange` fires when a field loses focus, so use `onInput` for every keystroke. `onDoubleClick` listens to `dblclick`.
+- `className` and `htmlFor` work. Inline string handlers like `onclick="..."` are ignored.
+
 ```tsx
 import { render, Router, Route, Link, useParams } from "cajoa";
 
@@ -202,7 +233,9 @@ Routes are matched in order, so put `path="*"` last.
 - Router: pathname only (no query/hash handling), no nested routes, no `base` path.
 - `<Show>` and `<Router>` return a function, so they must sit inside an element, not be the root returned by `render`.
 - Single-page apps need a server fallback to `index.html` for unknown paths.
-- The DOM renderer sets props as attributes: `style` must be a string, and live `value` / `checked` bindings on form controls are not supported yet.
+- SVG is not supported yet: `<svg>` is created as an HTML element, so it does not render.
+- No `ref` prop yet.
+- `<select value>` works only when the `<option>` elements are direct children of the `<select>`.
 - `createMemo` can show a brief inconsistent state when memos depend on each other.
 - `set` calls are not batched automatically inside event handlers. Wrap them in `batch()`.
 - Types in the core use a loose `HostNode` type for now.
@@ -216,6 +249,8 @@ Routes are matched in order, so put `path="*"` last.
 - [x] Router
 - [x] Renderer abstraction, split into packages
 - [x] Automated releases
+- [x] Form, style and event handling in the DOM renderer
+- [ ] SVG and `ref` support
 - [ ] Vite plugin (removes the two rules above)
 - [ ] Better form and style handling in the DOM renderer
 - [ ] Native renderers (mobile, desktop)
