@@ -1,5 +1,13 @@
 # cajoa
 
+## 0.8.0
+
+### Patch Changes
+
+- Updated dependencies [4634522]
+  - @cajoa/dom@0.8.0
+  - @cajoa/core@0.8.0
+
 ## 0.7.0
 
 ### Minor Changes
