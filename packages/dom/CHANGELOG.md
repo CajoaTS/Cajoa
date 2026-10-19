@@ -1,5 +1,15 @@
 # @cajoa/dom
 
+## 0.8.0
+
+### Minor Changes
+
+- 4634522: DOM renderer: `style` accepts objects, `value`/`checked`/`selected` are set as DOM properties (and stay in sync after the user types), `<select value>` works, event props can be replaced or removed, `onDoubleClick` maps to `dblclick`, `htmlFor` is supported, and inline `on*` string attributes are ignored.
+
+### Patch Changes
+
+- @cajoa/core@0.8.0
+
 ## 0.7.0
 
 ### Minor Changes

@@ -1,6 +1,6 @@
 {
   "name": "cajoa",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "A small, beginner-friendly frontend framework built on signals and JSX.",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -56,8 +56,8 @@
   ],
   "sideEffects": true,
   "dependencies": {
-    "@cajoa/core": "^0.7.0",
-    "@cajoa/dom": "^0.7.0"
+    "@cajoa/core": "^0.8.0",
+    "@cajoa/dom": "^0.8.0"
   },
   "scripts": {
     "build": "tsup src/index.ts --format esm,cjs --dts --clean",
