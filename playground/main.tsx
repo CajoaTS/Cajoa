@@ -93,6 +93,70 @@ function TickerDemo() {
   );
 }
 
+// ---------- 4. Form: value, checked, select, style, events ----------
+function FormDemo() {
+  const [name, setName] = createSignal("");
+  const [agree, setAgree] = createSignal(false);
+  const [color, setColor] = createSignal("tomato");
+  const [size, setSize] = createSignal(18);
+
+  const reset = () => {
+    setName("");
+    setAgree(false);
+    setColor("tomato");
+    setSize(18);
+  };
+
+  return (
+    <section>
+      <h2>Form</h2>
+
+      <input
+        placeholder="Pangalan"
+        onInput={(e: Event) => setName((e.target as HTMLInputElement).value)}
+        value={name}
+      />
+
+      <p style={() => ({ color: color(), fontSize: `${size()}px` })}>
+        Hello, {() => name() || "stranger"}!
+      </p>
+
+      <label>
+        <input
+          type="checkbox"
+          onChange={(e: Event) =>
+            setAgree((e.target as HTMLInputElement).checked)
+          }
+          checked={agree}
+        />
+        Sumasang-ayon ako
+      </label>
+      <p>{() => (agree() ? "Salamat!" : "Hindi pa sumasang-ayon")}</p>
+
+      <select
+        onChange={(e: Event) => setColor((e.target as HTMLSelectElement).value)}
+        value={color}
+      >
+        <option value="tomato">Tomato</option>
+        <option value="royalblue">Royal blue</option>
+        <option value="seagreen">Sea green</option>
+      </select>
+
+      <input
+        type="range"
+        min="12"
+        max="40"
+        onInput={(e: Event) =>
+          setSize(Number((e.target as HTMLInputElement).value))
+        }
+        value={size}
+      />
+
+      <button onClick={reset}>Reset</button>
+    </section>
+  );
+}
+
 // ---------- App ----------
 function App() {
   return (
@@ -100,6 +164,7 @@ function App() {
       <h1>Cajoa</h1>
       <Counter />
       <Todos />
+      <FormDemo />
       <TickerDemo />
     </div>
   );
