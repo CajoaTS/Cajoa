@@ -157,6 +157,39 @@ function FormDemo() {
   );
 }
 
+// ---------- 5. ref at SVG ----------
+function RefSvgDemo() {
+  const [radius, setRadius] = createSignal(20);
+  let field: HTMLInputElement | undefined;
+
+  return (
+    <section>
+      <h2>Ref at SVG</h2>
+      <input
+        placeholder="Pindutin ang button para mag-focus"
+        ref={(el: HTMLInputElement) => (field = el)}
+      />
+      <button onClick={() => field?.focus()}>I-focus ang input</button>
+      <p>
+        <svg width="100" height="100" viewBox="0 0 100 100" className="icon">
+          <circle
+            cx="50"
+            cy="50"
+            r={radius}
+            fill="royalblue"
+            stroke="white"
+            strokeWidth="3"
+          />
+        </svg>
+      </p>
+      <button onClick={() => setRadius((v) => Math.min(48, v + 6))}>
+        Palakihin
+      </button>{" "}
+      <button onClick={() => setRadius(20)}>Reset</button>
+    </section>
+  );
+}
+
 // ---------- App ----------
 function App() {
   return (
@@ -165,6 +198,7 @@ function App() {
       <Counter />
       <Todos />
       <FormDemo />
+      <RefSvgDemo />
       <TickerDemo />
     </div>
   );

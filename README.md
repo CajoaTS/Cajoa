@@ -96,7 +96,7 @@ const [todos, setTodos] = createSignal([{ id: 1, text: "Learn Cajoa" }]);
 
 ## Forms, styles and events
 
-```tsx
+````tsx
 const [name, setName] = createSignal("");
 const [agree, setAgree] = createSignal(false);
 
@@ -118,12 +118,29 @@ const [agree, setAgree] = createSignal(false);
     Hello, {() => name() || "stranger"}!
   </p>
 </form>;
-```
+
+## Refs and SVG
+
+```tsx
+function SearchBox() {
+  let input: HTMLInputElement | undefined;
+
+  return (
+    <div>
+      <input ref={(el: HTMLInputElement) => (input = el)} />
+      <button onClick={() => input?.focus()}>Focus</button>
+    </div>
+  );
+}
+
+````
 
 - `value`, `checked` and `selected` are set as DOM properties, so they stay in sync even after the user typed. Write `value` after `type`, `min` and `max`.
 - `style` takes a string or an object (camelCase keys, kebab-case keys, or custom properties like `--accent`). Numbers are not converted to `px`, so write `"12px"`. For a reactive style, pass a function: `style={() => ({ color: color() })}`. An object with signals inside, like `style={{ color: color() }}`, is read once.
 - Events are native DOM events. `onChange` fires when a field loses focus, so use `onInput` for every keystroke. `onDoubleClick` listens to `dblclick`.
 - `className` and `htmlFor` work. Inline string handlers like `onclick="..."` are ignored.
+- `ref` is a function that receives the element once it is created. Its props and children are ready, but it is not in the page yet, so use `onMount` if you need to measure it right away. Signals read inside `ref` are not tracked.
+- SVG works: `<svg>`, `<path>`, `<circle>`, gradients, filters and the other SVG tags are created in the SVG namespace. Write attributes as `stroke-width="2"` or `strokeWidth="2"`.
 
 ```tsx
 import { render, Router, Route, Link, useParams } from "cajoa";
@@ -233,12 +250,11 @@ Routes are matched in order, so put `path="*"` last.
 - Router: pathname only (no query/hash handling), no nested routes, no `base` path.
 - `<Show>` and `<Router>` return a function, so they must sit inside an element, not be the root returned by `render`.
 - Single-page apps need a server fallback to `index.html` for unknown paths.
-- SVG is not supported yet: `<svg>` is created as an HTML element, so it does not render.
-- No `ref` prop yet.
 - `<select value>` works only when the `<option>` elements are direct children of the `<select>`.
 - `createMemo` can show a brief inconsistent state when memos depend on each other.
 - `set` calls are not batched automatically inside event handlers. Wrap them in `batch()`.
 - Types in the core use a loose `HostNode` type for now.
+- Inside `<svg>`, the tags `<a>`, `<title>`, `<style>` and `<script>` are created as HTML elements (they share their names with HTML tags).
 
 ## Roadmap
 
