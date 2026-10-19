@@ -1,26 +1,107 @@
 import type { Renderer } from "@cajoa/core";
 
-/** Mga prop na itinatakda bilang DOM property, hindi attribute. */
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+const SVG_TAGS = new Set<string>([
+  "svg",
+  "g",
+  "defs",
+  "symbol",
+  "use",
+  "switch",
+  "view",
+  "desc",
+  "metadata",
+  "circle",
+  "ellipse",
+  "line",
+  "path",
+  "polygon",
+  "polyline",
+  "rect",
+  "image",
+  "text",
+  "tspan",
+  "textPath",
+  "foreignObject",
+  "linearGradient",
+  "radialGradient",
+  "stop",
+  "pattern",
+  "clipPath",
+  "mask",
+  "marker",
+  "filter",
+  "feBlend",
+  "feColorMatrix",
+  "feComponentTransfer",
+  "feComposite",
+  "feConvolveMatrix",
+  "feDiffuseLighting",
+  "feDisplacementMap",
+  "feDropShadow",
+  "feFlood",
+  "feGaussianBlur",
+  "feImage",
+  "feMerge",
+  "feMergeNode",
+  "feMorphology",
+  "feOffset",
+  "feSpecularLighting",
+  "feTile",
+  "feTurbulence",
+  "animate",
+  "animateMotion",
+  "animateTransform",
+  "set",
+  "mpath",
+]);
+
 const PROPERTIES = new Set(["value", "checked", "selected", "indeterminate"]);
 
-/** Mga JSX prop name na iba ang pangalan bilang HTML attribute. */
 const ATTRIBUTE_NAMES: Record<string, string> = {
   className: "class",
   htmlFor: "for",
 };
 
-/** Mga event name na hindi basta lowercase ng JSX name (onDoubleClick -> dblclick). */
+const SVG_ATTRIBUTE_NAMES: Record<string, string> = {
+  strokeWidth: "stroke-width",
+  strokeLinecap: "stroke-linecap",
+  strokeLinejoin: "stroke-linejoin",
+  strokeDasharray: "stroke-dasharray",
+  strokeDashoffset: "stroke-dashoffset",
+  strokeOpacity: "stroke-opacity",
+  strokeMiterlimit: "stroke-miterlimit",
+  fillOpacity: "fill-opacity",
+  fillRule: "fill-rule",
+  clipRule: "clip-rule",
+  clipPath: "clip-path",
+  stopColor: "stop-color",
+  stopOpacity: "stop-opacity",
+  floodColor: "flood-color",
+  floodOpacity: "flood-opacity",
+  textAnchor: "text-anchor",
+  dominantBaseline: "dominant-baseline",
+  fontSize: "font-size",
+  fontFamily: "font-family",
+  fontWeight: "font-weight",
+  letterSpacing: "letter-spacing",
+  markerStart: "marker-start",
+  markerMid: "marker-mid",
+  markerEnd: "marker-end",
+  vectorEffect: "vector-effect",
+  shapeRendering: "shape-rendering",
+  pointerEvents: "pointer-events",
+};
+
 const EVENT_NAMES: Record<string, string> = {
   doubleclick: "dblclick",
 };
 
-/** Mga listener na itinakda natin, para mapalitan o maalis kapag nagbago. */
 const listeners = new WeakMap<Node, Map<string, EventListener>>();
 
-/** Value ng <select> na itinakda ng app (ibabalik kapag nadagdag ang mga <option>). */
 const selectValues = new WeakMap<Node, string>();
 
-/** onClick, onKeyDown, atbp. May suporta rin sa lowercase na tunay na event property (onclick). */
 function isEvent(el: Element, key: string): boolean {
   return /^on[A-Z]/.test(key) || (key.startsWith("on") && key in el);
 }
@@ -41,7 +122,6 @@ function setEvent(el: Element, key: string, value: unknown) {
     byName.delete(name);
   }
 
-  // Function lang ang tinatanggap. Ang string (onclick="...") ay hindi isinasama para iwas XSS.
   if (typeof value === "function") {
     el.addEventListener(name, value as EventListener);
     byName.set(name, value as EventListener);
@@ -49,7 +129,6 @@ function setEvent(el: Element, key: string, value: unknown) {
 }
 
 function toCssName(name: string): string {
-  // custom property (--accent) o kebab-case na: huwag galawin
   if (name.startsWith("--") || name.includes("-")) return name;
   return name.replace(/[A-Z]/g, (c) => "-" + c.toLowerCase());
 }
@@ -62,7 +141,6 @@ function setStyle(el: HTMLElement, value: unknown) {
     return;
   }
 
-  // Ang `style` prop ang may-ari ng inline style: nililinis muna bago ilapat ang bago
   style.cssText = "";
   if (value && typeof value === "object") {
     for (const [name, v] of Object.entries(value as Record<string, unknown>)) {
@@ -77,7 +155,7 @@ function setProperty(el: Element, name: string, value: unknown) {
 
   if (name === "value") {
     const next = value == null ? "" : String(value);
-    if (target.value !== next) target.value = next; // iwas lipat ng cursor kung pareho na
+    if (target.value !== next) target.value = next;
     if (el.tagName === "SELECT") selectValues.set(el, next);
   } else {
     target[name] = !!value;
@@ -85,7 +163,10 @@ function setProperty(el: Element, name: string, value: unknown) {
 }
 
 export const domRenderer: Renderer<Node> = {
-  createElement: (tag) => document.createElement(tag),
+  createElement: (tag) =>
+    SVG_TAGS.has(tag)
+      ? document.createElementNS(SVG_NS, tag)
+      : document.createElement(tag),
   createText: (value) => document.createTextNode(value),
   createMarker: () => document.createComment(""),
   createFragment: () => document.createDocumentFragment(),
@@ -93,7 +174,6 @@ export const domRenderer: Renderer<Node> = {
 
   insert: (parent, node, anchor = null) => {
     parent.insertBefore(node, anchor);
-    // Dahil nauuna ang props bago ang mga <option>, ibalik ang value ng <select> pagkatapos ng insert
     const wanted = selectValues.get(parent);
     if (wanted !== undefined) (parent as HTMLSelectElement).value = wanted;
   },
@@ -123,7 +203,12 @@ export const domRenderer: Renderer<Node> = {
       return;
     }
 
-    const name = ATTRIBUTE_NAMES[key] ?? key;
+    const isSvg = e.namespaceURI === SVG_NS;
+    const name =
+      (isSvg ? SVG_ATTRIBUTE_NAMES[key] : undefined) ??
+      ATTRIBUTE_NAMES[key] ??
+      key;
+
     if (value == null || value === false) e.removeAttribute(name);
     else e.setAttribute(name, value === true ? "" : String(value));
   },

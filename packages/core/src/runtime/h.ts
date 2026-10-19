@@ -1,4 +1,4 @@
-﻿import { createEffect } from "../reactivity/signal";
+﻿import { createEffect, untrack } from "../reactivity/signal";
 import { getRenderer } from "../renderer";
 import type { HostNode } from "../renderer/types";
 
@@ -19,8 +19,14 @@ export function h(
 ): HostNode {
   const r = getRenderer();
   const el = r.createElement(tag);
+  let ref: ((node: HostNode) => void) | undefined;
 
   for (const [key, value] of Object.entries(props ?? {})) {
+    if (key === "ref") {
+      // hindi ito prop: tatawagin pagkatapos mabuo ang element
+      if (typeof value === "function") ref = value;
+      continue;
+    }
     if (typeof value === "function" && !key.startsWith("on")) {
       createEffect(() => r.setProp(el, key, value())); // reactive prop
     } else {
@@ -28,6 +34,11 @@ export function h(
     }
   }
   appendChildren(el, children);
+
+  // ref: isang beses lang, nakahanda na ang props at mga child, at hindi nagta-track ng signals
+  const onRef = ref;
+  if (onRef) untrack(() => onRef(el));
+
   return el as HostNode;
 }
 
