@@ -1,5 +1,11 @@
 # create-cajoa
 
+## 0.3.1
+
+### Patch Changes
+
+- eb34a75: The starter requires cajoa 0.10.1 or newer (0.10.0 was missing the `cajoa/vite` export).
+
 ## 0.3.0
 
 ### Minor Changes

@@ -1,5 +1,13 @@
 # cajoa
 
+## 0.10.1
+
+### Patch Changes
+
+- eb34a75: Fix the `cajoa/vite` export: the `./vite` entry was nested inside the `"."` export, so `import { cajoa } from "cajoa/vite"` failed with `Missing "./vite" specifier`. A new CI check (`check:exports`) now verifies that every export resolves and imports.
+- @cajoa/core@0.10.1
+  - @cajoa/dom@0.10.1
+
 ## 0.10.0
 
 ### Minor Changes
