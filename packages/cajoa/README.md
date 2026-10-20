@@ -30,22 +30,24 @@ Or add Cajoa to an existing project:
 npm install cajoa
 ```
 
-### Manual JSX setup
+### Manual setup
 
-In your `tsconfig.json`:
+Add the plugin to `vite.config.ts`:
 
-```json
-{
-  "compilerOptions": {
-    "jsx": "react-jsx",
-    "jsxImportSource": "cajoa"
-  }
-}
+```ts
+import { defineConfig } from "vite";
+import { cajoa } from "cajoa/vite";
+
+export default defineConfig({ plugins: [cajoa()] });
 ```
 
-With Vite, also set it in `vite.config.ts`
-(`oxc: { jsx: { runtime: "automatic", importSource: "cajoa" } }` on newer Vite,
-or `esbuild: { jsx: "automatic", jsxImportSource: "cajoa" }` on older ones).
+And set the JSX types in `tsconfig.json`:
+
+```json
+{ "compilerOptions": { "jsx": "react-jsx", "jsxImportSource": "cajoa" } }
+```
+
+The plugin also sets Vite's JSX transform for you. Without the plugin, set `oxc: { jsx: { runtime: "automatic", importSource: "cajoa" } }` (Vite 8) or `esbuild: { jsx: "automatic", jsxImportSource: "cajoa" }` (older Vite) yourself.
 
 ## Quick start
 
@@ -65,16 +67,33 @@ function Counter() {
 render(Counter, document.getElementById("app")!);
 ```
 
-## Two rules to remember
+## Reactive JSX
 
-Cajoa has no compiler yet, so JSX expressions run exactly once. That gives two rules:
+With the Vite plugin, write plain JSX. Calls to signals are reactive wherever they appear in a DOM element, and `Show` children are created lazily:
 
-1. **Pass the signal, don't call it.**
-   `{count}` is reactive. `{count()}` is read once and never updates.
-   For computed values, pass a function: `{() => count() * 2}`.
-2. **`Show` children are a function.**
-   `<Show when={on}>{() => <p>Hello</p>}</Show>`
-   Otherwise the element is created even when it is hidden.
+```tsx
+<p>Double: {count() * 2}</p>
+<p class={count() % 2 ? "odd" : "even"} style={{ color: color() }}>…</p>
+
+<Show when={count() > 3} fallback={<p>Keep clicking</p>}>
+  <p>More than 3!</p>
+</Show>
+
+<For each={todos()}>{(todo) => <li>{todo.text}</li>}</For>
+```
+
+The plugin rewrites your JSX at build time. When an expression contains a function call, it wraps it in a function (`{count() * 2}` becomes `{() => (count() * 2)}`) for:
+
+- children and attributes of DOM elements (but not `ref`, `key` and `on*` props)
+- children of your own components
+- `when` and `each` of `Show` and `For`, and the `fallback` and children of `Show`
+
+It does **not** change the props of your own components. They receive plain values. To pass a live value, pass the signal itself (`<Greeting name={name} />`) or a function.
+
+Without the plugin, two rules apply:
+
+1. **Pass the signal, don't call it.** `{count}` is reactive, `{count()}` is read once. For computed values, pass a function: `{() => count() * 2}`.
+2. **`Show` children are a function:** `<Show when={on}>{() => <p>Hello</p>}</Show>`.
 
 ## Lists and conditions
 
@@ -255,6 +274,7 @@ Routes are matched in order, so put `path="*"` last.
 - `set` calls are not batched automatically inside event handlers. Wrap them in `batch()`.
 - Types in the core use a loose `HostNode` type for now.
 - Inside `<svg>`, the tags `<a>`, `<title>`, `<style>` and `<script>` are created as HTML elements (they share their names with HTML tags).
+- The compiler works on `.tsx` and `.jsx` files in Vite projects. `Show` and `For` are recognised only when imported from `cajoa` or `@cajoa/core`.
 
 ## Roadmap
 
@@ -266,8 +286,8 @@ Routes are matched in order, so put `path="*"` last.
 - [x] Renderer abstraction, split into packages
 - [x] Automated releases
 - [x] Form, style and event handling in the DOM renderer
-- [ ] SVG and `ref` support
-- [ ] Vite plugin (removes the two rules above)
+- [x] SVG and `ref` support
+- [x] Vite plugin (removes the two rules above)
 - [ ] Better form and style handling in the DOM renderer
 - [ ] Native renderers (mobile, desktop)
 - [ ] SSR
