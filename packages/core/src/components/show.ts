@@ -2,15 +2,21 @@
 import { createMemo } from "../reactivity/memo";
 import { untrack } from "../reactivity/signal";
 
+type Lazy<T> = T | (() => T);
+
+function resolve<T>(value: Lazy<T>): T {
+  return typeof value === "function" ? (value as () => T)() : value;
+}
+
 export function Show<T>(props: {
-  when: () => T;
-  children: () => Child;
-  fallback?: () => Child;
+  when: Lazy<T>;
+  children?: Lazy<Child>;
+  fallback?: Lazy<Child>;
 }) {
-  const visible = createMemo(() => !!props.when());
+  const visible = createMemo(() => !!resolve(props.when));
 
   return () =>
     visible()
-      ? untrack(() => props.children())
-      : untrack(() => props.fallback?.() ?? null);
+      ? untrack(() => resolve(props.children ?? null))
+      : untrack(() => resolve(props.fallback ?? null));
 }

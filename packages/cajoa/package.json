@@ -35,6 +35,16 @@
       "require": {
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
+      },
+      "./vite": {
+        "import": {
+          "types": "./dist/vite.d.ts",
+          "default": "./dist/vite.js"
+        },
+        "require": {
+          "types": "./dist/vite.d.cts",
+          "default": "./dist/vite.cjs"
+        }
       }
     }
   },
@@ -45,6 +55,9 @@
       ],
       "jsx-dev-runtime": [
         "./dist/index.d.ts"
+      ],
+      "vite": [
+        "./dist/vite.d.ts"
       ]
     }
   },
@@ -56,11 +69,21 @@
   ],
   "sideEffects": true,
   "dependencies": {
+    "@babel/parser": "^8.0.7",
     "@cajoa/core": "^0.9.0",
-    "@cajoa/dom": "^0.9.0"
+    "@cajoa/dom": "^0.9.0",
+    "magic-string": "^0.30.21"
+  },
+  "peerDependencies": {
+    "vite": ">=5.0.0"
+  },
+  "peerDependenciesMeta": {
+    "vite": {
+      "optional": true
+    }
   },
   "scripts": {
-    "build": "tsup src/index.ts --format esm,cjs --dts --clean",
+    "build": "tsup src/index.ts src/vite.ts --format esm,cjs --dts --clean",
     "check:package": "publint && attw --pack ."
   },
   "repository": {

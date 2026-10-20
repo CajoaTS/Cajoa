@@ -1,10 +1,11 @@
 import { defineConfig } from "vitest/config";
 import { fileURLToPath } from "node:url";
+import { cajoa } from "./packages/cajoa/src/vite";
 
 const p = (f: string) => fileURLToPath(new URL(f, import.meta.url));
 
 export default defineConfig({
-  oxc: { jsx: { runtime: "automatic", importSource: "cajoa" } },
+  plugins: [cajoa()],
   resolve: {
     alias: [
       {

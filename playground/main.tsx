@@ -189,6 +189,24 @@ function RefSvgDemo() {
     </section>
   );
 }
+// ---------- 6. Compiler: natural na JSX ----------
+function CompilerDemo() {
+  const [n, setN] = createSignal(1);
+
+  return (
+    <section>
+      <h2>Compiler</h2>
+      <p>Double: {n() * 2}</p>
+      <p style={{ color: n() % 2 ? "tomato" : "seagreen" }}>
+        {n() % 2 ? "odd" : "even"}
+      </p>
+      <Show when={n() > 3} fallback={<p>Mag-click hanggang lumampas sa 3</p>}>
+        <p>Lumampas na sa 3!</p>
+      </Show>
+      <button onClick={() => setN((v) => v + 1)}>+1</button>
+    </section>
+  );
+}
 
 // ---------- App ----------
 function App() {
@@ -199,6 +217,7 @@ function App() {
       <Todos />
       <FormDemo />
       <RefSvgDemo />
+      <CompilerDemo />
       <TickerDemo />
     </div>
   );

@@ -7,7 +7,7 @@ interface Entry {
 }
 
 export function For<T>(props: {
-  each: () => T[];
+  each: T[] | (() => T[]);
   children: (item: T, index: number) => HostNode;
   key?: (item: T, index: number) => unknown;
 }) {
@@ -19,7 +19,7 @@ export function For<T>(props: {
   });
 
   return () => {
-    const items = props.each();
+    const items = typeof props.each === "function" ? props.each() : props.each;
     const next = new Map<unknown, Entry>();
     const nodes: HostNode[] = [];
 

@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
+import { cajoa } from "cajoa/vite";
 
 export default defineConfig({
-  oxc: { jsx: { runtime: "automatic", importSource: "cajoa" } },
+  plugins: [cajoa()],
 });
