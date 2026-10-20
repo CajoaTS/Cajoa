@@ -16,7 +16,8 @@
     "sync:create": "node scripts/sync-create-cajoa.mjs",
     "check:sync": "node scripts/sync-readme.mjs --check && node scripts/sync-create-cajoa.mjs --check",
     "check:packages": "npm run check:package -w @cajoa/core -w @cajoa/dom -w cajoa",
-    "verify": "npm run typecheck && vitest run && npm run build && npm run check:sync && npm run check:packages",
+    "check:exports": "node scripts/check-exports.mjs",
+    "verify": "npm run typecheck && vitest run && npm run build && npm run check:sync && npm run check:packages && npm run check:exports",
     "changeset": "changeset",
     "version-packages": "changeset version && npm run sync && npm run sync:create && npm install --package-lock-only",
     "release": "npm run verify && changeset publish"
