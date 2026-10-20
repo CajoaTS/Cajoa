@@ -1,5 +1,11 @@
 # @cajoa/dom
 
+## 0.10.1
+
+### Patch Changes
+
+- @cajoa/core@0.10.1
+
 ## 0.10.0
 
 ### Patch Changes
