@@ -1,5 +1,17 @@
 # cajoa
 
+## 0.10.0
+
+### Minor Changes
+
+- 97ab96f: Add the Vite plugin (`cajoa/vite`): calls in JSX are reactive without wrapper functions, `Show` children and `fallback` are created lazily, and the plugin configures Vite's JSX transform. `Show` and `For` now also accept plain values (`when={n() > 3}`, `each={todos()}`).
+
+### Patch Changes
+
+- Updated dependencies [97ab96f]
+  - @cajoa/core@0.10.0
+  - @cajoa/dom@0.10.0
+
 ## 0.9.0
 
 ### Patch Changes

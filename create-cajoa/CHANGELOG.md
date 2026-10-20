@@ -1,5 +1,11 @@
 # create-cajoa
 
+## 0.3.0
+
+### Minor Changes
+
+- 97ab96f: The starter now uses the `cajoa/vite` plugin.
+
 ## 0.2.2
 
 ### Patch Changes
