@@ -20,5 +20,5 @@ export default defineConfig({
       { find: /^@cajoa\/dom$/, replacement: p("./packages/dom/src/index.ts") },
     ],
   },
-  test: { environment: "jsdom" },
+  test: { environment: "jsdom", setupFiles: ["./tests/setup.ts"] },
 });

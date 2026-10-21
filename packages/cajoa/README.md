@@ -113,6 +113,49 @@ const [todos, setTodos] = createSignal([{ id: 1, text: "Learn Cajoa" }]);
 
 ## Routing
 
+```tsx
+import { render, Router, Route, Outlet, NavLink, useParams } from "cajoa";
+
+function Layout() {
+  return (
+    <div>
+      <nav>
+        <NavLink href="/" end>
+          Home
+        </NavLink>
+        <NavLink href="/users/7">User 7</NavLink>
+      </nav>
+      <Outlet />
+    </div>
+  );
+}
+
+const User = () => <h1>User {useParams().id}</h1>;
+
+render(
+  () => (
+    <main>
+      <Router>
+        <Route path="/" component={Layout}>
+          <Route path="" component={() => <h1>Home</h1>} />
+          <Route path="users/:id" component={User} />
+        </Route>
+        <Route path="*" component={() => <h1>Not found</h1>} />
+      </Router>
+    </main>
+  ),
+  document.getElementById("app")!,
+);
+```
+
+- Routes are matched in order, so put `path="*"` last. Child paths are relative to their parent, and `path=""` is the index route.
+- `<Outlet />` renders the matching child route inside a layout. The layout stays alive while you move between its children.
+- `useParams()` reads the path params. A route component is re-created when its own params change.
+- `useSearchParams()` reads and writes the query string: `const [params, setParams] = useSearchParams()`, then `params().get("q")` and `setParams({ q: "cajoa", page: null })` (`null` removes a key). `useLocation()` returns `{ pathname, search, hash }`.
+- Serving the app from a sub-path? Use `<Router base="/my-app">` (with Vite: `base={import.meta.env.BASE_URL}`). Keep writing app paths in `Link` and `navigate`, without the base.
+- `<NavLink>` adds an `active` class (`activeClass` to change it). Use `end` for an exact match.
+- `<Navigate to="/login" />` redirects. `navigate(path, { replace, scroll })` navigates from code. New pages scroll to the top, or to the `#hash` target.
+
 ## Forms, styles and events
 
 ````tsx
@@ -239,14 +282,19 @@ Routes are matched in order, so put `path="*"` last.
 
 ### Router
 
-| Function                     | What it does                                               |
-| ---------------------------- | ---------------------------------------------------------- |
-| `<Router>`                   | Renders the first `<Route>` that matches the current path. |
-| `<Route path component>`     | Maps a path (`/users/:id`, `*`) to a component.            |
-| `<Link href>`                | An `<a>` that navigates without reloading the page.        |
-| `navigate(to, { replace? })` | Navigates programmatically.                                |
-| `useParams()`                | Reads the route params (`{ id: "7" }`).                    |
-| `usePath()`                  | Returns a signal getter for the current pathname.          |
+| Function                              | What it does                                                                                |
+| ------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `<Router base?>`                      | Renders the route that matches the current path. `base` is for apps served from a sub-path. |
+| `<Route path component>`              | Maps a path (`/users/:id`, `*`, `docs/*`) to a component. Nest routes to build layouts.     |
+| `<Outlet />`                          | Renders the matching child route inside a layout.                                           |
+| `<Link href>`                         | An `<a>` that navigates without reloading the page.                                         |
+| `<NavLink href end? activeClass?>`    | A `Link` that gets an active class on the current page.                                     |
+| `<Navigate to replace?>`              | Redirects when it is rendered.                                                              |
+| `navigate(to, { replace?, scroll? })` | Navigates programmatically.                                                                 |
+| `useParams()`                         | Reads the route params (`{ id: "7" }`).                                                     |
+| `useLocation()`                       | Returns a getter for `{ pathname, search, hash }`.                                          |
+| `useSearchParams()`                   | Returns `[params, setParams]` for the query string.                                         |
+| `usePath()`                           | Returns a getter for the current pathname.                                                  |
 
 ### Renderer
 
@@ -266,7 +314,6 @@ Routes are matched in order, so put `path="*"` last.
 ## Known limitations
 
 - No SSR.
-- Router: pathname only (no query/hash handling), no nested routes, no `base` path.
 - `<Show>` and `<Router>` return a function, so they must sit inside an element, not be the root returned by `render`.
 - Single-page apps need a server fallback to `index.html` for unknown paths.
 - `<select value>` works only when the `<option>` elements are direct children of the `<select>`.
@@ -275,26 +322,6 @@ Routes are matched in order, so put `path="*"` last.
 - Types in the core use a loose `HostNode` type for now.
 - Inside `<svg>`, the tags `<a>`, `<title>`, `<style>` and `<script>` are created as HTML elements (they share their names with HTML tags).
 - The compiler works on `.tsx` and `.jsx` files in Vite projects. `Show` and `For` are recognised only when imported from `cajoa` or `@cajoa/core`.
-
-## Roadmap
-
-- [x] Signals, effects, memo, batch
-- [x] DOM bindings, `Show`, keyed `For`, Fragments
-- [x] Lifecycle, context
-- [x] JSX support and the Vite plugin (reactive JSX)
-- [x] Router
-- [x] Renderer abstraction, split into packages
-- [x] Automated releases
-- [x] Form, style and event handling in the DOM renderer
-- [x] SVG and `ref` support
-- [ ] Router: base path, query and hash, nested routes
-- [ ] Docs site
-- [ ] Error boundaries, async data (`createResource`), portals
-- [ ] Animation helpers (`createTween`, transitions)
-- [ ] Real-browser tests and benchmarks
-- [ ] Native renderers (mobile, desktop)
-- [ ] SSR
-- [ ] 1.0 (stable API)
 
 ## Development
 
