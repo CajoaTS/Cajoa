@@ -12,5 +12,5 @@
       "cajoa/jsx-dev-runtime": ["./packages/core/src/jsx-runtime.ts"]
     }
   },
-  "include": ["packages/*/src", "tests", "playground"]
+  "include": ["packages/*/src", "tests", "playground", "create-cajoa/template/src"]
 }
