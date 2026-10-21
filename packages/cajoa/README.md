@@ -281,17 +281,20 @@ Routes are matched in order, so put `path="*"` last.
 - [x] Signals, effects, memo, batch
 - [x] DOM bindings, `Show`, keyed `For`, Fragments
 - [x] Lifecycle, context
-- [x] JSX support
+- [x] JSX support and the Vite plugin (reactive JSX)
 - [x] Router
 - [x] Renderer abstraction, split into packages
 - [x] Automated releases
 - [x] Form, style and event handling in the DOM renderer
 - [x] SVG and `ref` support
-- [x] Vite plugin (removes the two rules above)
-- [ ] Better form and style handling in the DOM renderer
+- [ ] Router: base path, query and hash, nested routes
+- [ ] Docs site
+- [ ] Error boundaries, async data (`createResource`), portals
+- [ ] Animation helpers (`createTween`, transitions)
+- [ ] Real-browser tests and benchmarks
 - [ ] Native renderers (mobile, desktop)
 - [ ] SSR
-- [ ] Docs site
+- [ ] 1.0 (stable API)
 
 ## Development
 
