@@ -1,5 +1,11 @@
 # create-cajoa
 
+## 0.4.1
+
+### Patch Changes
+
+- e2f7153: Add `src/vite-env.d.ts` so importing `./style.css` type-checks in editors and with newer TypeScript versions.
+
 ## 0.4.0
 
 ### Minor Changes
