@@ -323,6 +323,33 @@ Routes are matched in order, so put `path="*"` last.
 - Inside `<svg>`, the tags `<a>`, `<title>`, `<style>` and `<script>` are created as HTML elements (they share their names with HTML tags).
 - The compiler works on `.tsx` and `.jsx` files in Vite projects. `Show` and `For` are recognised only when imported from `cajoa` or `@cajoa/core`.
 
+## Roadmap
+
+**Shipped**
+
+- [x] Signals, effects, memo, batch
+- [x] DOM bindings, `Show`, keyed `For`, Fragments
+- [x] Lifecycle, context
+- [x] JSX support and the Vite plugin (reactive JSX)
+- [x] Router
+- [x] Renderer abstraction, split into packages
+- [x] Automated releases
+- [x] Form, style and event handling in the DOM renderer
+- [x] SVG and `ref` support
+- [x] Router v2: nested routes, base path, query and hash
+- [x] Real-browser tests
+
+**(next)**
+
+- [ ] Error boundaries and dev-mode warnings
+- [ ] Async data (`createResource`)
+- [ ] Stores (`createStore`), automatic batching, glitch-free updates
+- [ ] `Portal`, `Dynamic`, `Switch`/`Match`, lazy components
+- [ ] Typed JSX (HTML attributes and events)
+- [ ] Docs site and tutorial
+- [ ] Benchmarks and a bundle-size budget
+- [ ] 1.0 (stable API)
+
 ## Development
 
 ```bash
@@ -330,6 +357,8 @@ npm install
 npm test          # run tests
 npm run dev       # open the playground
 npm run verify    # typecheck, tests, build, sync and package checks
+npm run e2e:install   # one time: download the browsers
+npm run test:e2e      # run the browser tests
 ```
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for the release flow.

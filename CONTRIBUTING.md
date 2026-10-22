@@ -8,6 +8,15 @@ npm run verify   # typecheck, tests, build, sync checks, package checks
 npm run dev      # playground
 ```
 
+Browser tests (Playwright) run against a small app in `e2e/app`:
+
+```bash
+npm run e2e:install   # one time: download the browsers
+npm run test:e2e
+```
+
+They run in CI as the `e2e` check. When you fix a browser-specific bug, add a test in `e2e/tests`.
+
 ## Making a change
 
 1. Branch from `main` and open a pull request. Do not push to `main` directly.
