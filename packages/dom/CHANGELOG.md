@@ -1,5 +1,12 @@
 # @cajoa/dom
 
+## 0.12.0
+
+### Patch Changes
+
+- Updated dependencies [63e98d2]
+  - @cajoa/core@0.12.0
+
 ## 0.11.0
 
 ### Minor Changes
