@@ -20,6 +20,8 @@
     "verify": "npm run typecheck && vitest run && npm run build && npm run check:sync && npm run check:packages && npm run check:exports",
     "changeset": "changeset",
     "version-packages": "changeset version && npm run sync && npm run sync:create && npm install --package-lock-only",
+    "test:e2e": "playwright test",
+    "e2e:install": "playwright install",
     "release": "npm run verify && changeset publish"
   },
   "author": "cjmgrc",
@@ -31,6 +33,7 @@
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
     "@changesets/cli": "^3.0.3",
+    "@playwright/test": "^1.64.1",
     "@types/node": "^26.6.5",
     "jsdom": "^29.1.1",
     "publint": "^0.3.25",
