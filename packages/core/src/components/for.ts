@@ -1,4 +1,5 @@
 ﻿import { createRoot, onCleanup } from "../reactivity/signal";
+import { warn } from "../dev";
 import type { HostNode } from "../renderer/types";
 
 interface Entry {
@@ -25,9 +26,13 @@ export function For<T>(props: {
 
     items.forEach((item, i) => {
       const k = props.key ? props.key(item, i) : item;
+      if (next.has(k)) {
+        warn(
+          `<For> found a duplicate key (${String(k)}). Keys must be unique, otherwise one item replaces another.`,
+        );
+      }
       let entry = cache.get(k);
       if (!entry) {
-        // bagong item: gumawa ng sariling "root" para hindi masama sa effect ng list
         entry = createRoot((dispose) => ({
           node: props.children(item, i),
           dispose,
@@ -37,7 +42,6 @@ export function For<T>(props: {
       nodes.push(entry.node);
     });
 
-    // itapon ang mga item na wala na (linisin ang effects nila)
     cache.forEach((entry, k) => {
       if (!next.has(k)) entry.dispose();
     });

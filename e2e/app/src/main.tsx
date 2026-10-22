@@ -9,6 +9,7 @@ import {
   createSignal,
   render,
   useParams,
+  ErrorBoundary,
   useSearchParams,
 } from "cajoa";
 
@@ -37,6 +38,7 @@ function Shell() {
         <NavLink href="/search">Search</NavLink>{" "}
         <NavLink href="/users/1">User 1</NavLink>{" "}
         <NavLink href="/users/2">User 2</NavLink>{" "}
+        <NavLink href="/boundary">Boundary</NavLink>{" "}
         <Link href="/long#bottom">Bottom</Link>{" "}
         <span data-testid="shell-renders">{renders}</span>
       </nav>
@@ -242,6 +244,38 @@ function UserPage() {
   );
 }
 
+function BoundaryPage() {
+  const [broken, setBroken] = createSignal(true);
+
+  const Flaky = () => {
+    if (broken()) throw new Error("kaboom");
+    return <p data-testid="healthy">healthy</p>;
+  };
+
+  return (
+    <section>
+      <ErrorBoundary
+        fallback={(error: unknown, reset: () => void) => (
+          <div data-testid="fallback">
+            <p data-testid="error-message">{(error as Error).message}</p>
+            <button
+              data-testid="retry"
+              onClick={() => {
+                setBroken(false);
+                reset();
+              }}
+            >
+              retry
+            </button>
+          </div>
+        )}
+      >
+        <Flaky />
+      </ErrorBoundary>
+    </section>
+  );
+}
+
 // ---------- App ----------
 render(
   () => (
@@ -255,6 +289,7 @@ render(
           <Route path="long" component={LongPage} />
           <Route path="search" component={SearchPage} />
           <Route path="users/:id" component={UserPage} />
+          <Route path="boundary" component={BoundaryPage} />
           <Route path="old" component={() => <Navigate to="/forms" />} />
         </Route>
         <Route path="*" component={NotFound} />

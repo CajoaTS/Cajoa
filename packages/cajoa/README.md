@@ -86,7 +86,7 @@ The plugin rewrites your JSX at build time. When an expression contains a functi
 
 - children and attributes of DOM elements (but not `ref`, `key` and `on*` props)
 - children of your own components
-- `when` and `each` of `Show` and `For`, and the `fallback` and children of `Show`
+- `when` and `each` of `Show` and `For`, and the `fallback` and children of `Show` and `ErrorBoundary`
 
 It does **not** change the props of your own components. They receive plain values. To pass a live value, pass the signal itself (`<Greeting name={name} />`) or a function.
 
@@ -193,7 +193,7 @@ function SearchBox() {
       <button onClick={() => input?.focus()}>Focus</button>
     </div>
   );
-}
+}```
 
 ````
 
@@ -227,6 +227,34 @@ render(
 ```
 
 Routes are matched in order, so put `path="*"` last.
+
+## Error handling
+
+```tsx
+import { ErrorBoundary } from "cajoa";
+
+<ErrorBoundary
+  fallback={(error, reset) => (
+    <div>
+      <p>Something went wrong: {String(error)}</p>
+      <button onClick={reset}>Try again</button>
+    </div>
+  )}
+>
+  <Dashboard />
+</ErrorBoundary>;
+```
+
+- It catches errors thrown while a component is created, inside effects and memos, and in `onMount`. The nearest boundary wins. An error in a fallback goes to the next boundary up.
+- It does **not** catch errors in event handlers, timers or promises. Handle those yourself.
+- `fallback` is an element or a function `(error, reset)`. Calling `reset()` re-creates the children. Use `onError` to report the error (for example to a logging service).
+- With the Vite plugin, the children and an element `fallback` are created lazily, like `Show`. Without it, pass functions: `<ErrorBoundary fallback={...}>{() => <Dashboard />}</ErrorBoundary>`.
+- Like `Show`, it must sit inside an element, not be the root returned by `render` (`render` throws a clear error).
+- `catchError(fn, handler)` is the low-level building block.
+
+### Dev mode
+
+The Vite plugin turns on dev mode on the dev server only (it sets `globalThis.__CAJOA_DEV__ = true`). In dev mode, Cajoa warns when `onCleanup` or `useContext` is called outside a component, and when `<For>` finds duplicate keys. It also logs every error caught by an `ErrorBoundary`. Production builds log nothing. Without the plugin, set the flag yourself.
 
 ## Packages
 
@@ -271,6 +299,13 @@ Routes are matched in order, so put `path="*"` last.
 | `onMount(fn)`    | Runs `fn` after the component is rendered.                        |
 | `onCleanup(fn)`  | Runs `fn` before an effect re-runs or when its owner is disposed. |
 | `createRoot(fn)` | Creates a top-level owner you can dispose manually.               |
+
+### Errors
+
+| Function                            | What it does                                                                            |
+| ----------------------------------- | --------------------------------------------------------------------------------------- |
+| `<ErrorBoundary fallback onError?>` | Shows `fallback` (an element, or `(error, reset) => …`) when something below it throws. |
+| `catchError(fn, handler)`           | Runs `fn`. Errors it throws, now or later (effects, `onMount`), go to `handler`.        |
 
 ### Context
 
@@ -322,6 +357,7 @@ Routes are matched in order, so put `path="*"` last.
 - Types in the core use a loose `HostNode` type for now.
 - Inside `<svg>`, the tags `<a>`, `<title>`, `<style>` and `<script>` are created as HTML elements (they share their names with HTML tags).
 - The compiler works on `.tsx` and `.jsx` files in Vite projects. `Show` and `For` are recognised only when imported from `cajoa` or `@cajoa/core`.
+- `ErrorBoundary` does not catch errors thrown in event handlers, timers or promises.
 
 ## Roadmap
 
@@ -338,10 +374,10 @@ Routes are matched in order, so put `path="*"` last.
 - [x] SVG and `ref` support
 - [x] Router v2: nested routes, base path, query and hash
 - [x] Real-browser tests
+- [x] Error boundaries and dev-mode warnings
 
 **(next)**
 
-- [ ] Error boundaries and dev-mode warnings
 - [ ] Async data (`createResource`)
 - [ ] Stores (`createStore`), automatic batching, glitch-free updates
 - [ ] `Portal`, `Dynamic`, `Switch`/`Match`, lazy components
