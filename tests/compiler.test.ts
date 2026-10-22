@@ -116,3 +116,26 @@ test("ignores other files, node_modules and bad syntax", () => {
 test("returns a source map", () => {
   expect(transformJsx("const a = <p>{x()}</p>;", "file.tsx")?.map).toBeTruthy();
 });
+
+const EB = 'import { ErrorBoundary } from "cajoa";\n';
+
+test("ErrorBoundary: children and fallback elements are lazy", () => {
+  expect(
+    run(
+      EB +
+        "const a = <ErrorBoundary fallback={<p>Oops</p>}><Page /></ErrorBoundary>;",
+    ),
+  ).toBe(
+    EB +
+      "const a = <ErrorBoundary fallback={() => (<p>Oops</p>)}>{() => (<Page />)}</ErrorBoundary>;",
+  );
+});
+
+test("ErrorBoundary: function fallbacks and children are left alone", () => {
+  expect(
+    none(
+      EB +
+        "const a = <ErrorBoundary fallback={(e) => <p>oops</p>}>{() => <Page />}</ErrorBoundary>;",
+    ),
+  ).toBeNull();
+});

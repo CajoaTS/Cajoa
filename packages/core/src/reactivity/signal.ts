@@ -1,14 +1,17 @@
-﻿type Cleanup = () => void;
+﻿import { warn } from "../dev";
+
+type Cleanup = () => void;
 
 interface Owner {
   cleanups: Cleanup[];
   parent: Owner | null;
   context?: Map<symbol, unknown>;
+  errorHandler?: (error: unknown) => void;
 }
 
 interface Computation extends Owner {
   run: () => void;
-  deps: Set<Set<Computation>>; // all signals that's been read
+  deps: Set<Set<Computation>>; 
   disposed: boolean;
 }
 
@@ -22,10 +25,26 @@ function clean(owner: Owner) {
 }
 
 function cleanComputation(c: Computation) {
-  for (const subs of c.deps) subs.delete(c); // this unsubscribes to all signal
+  for (const subs of c.deps) subs.delete(c); 
   c.deps.clear();
-  clean(c); // run cleanups (tgt with the disposal of the children)
+  clean(c);
 }
+
+function addCleanup(fn: Cleanup) {
+  currentOwner?.cleanups.push(fn);
+}
+
+function handleError(error: unknown, owner: Owner | null): void {
+  for (let o = owner; o; o = o.parent) {
+    if (o.errorHandler) {
+      o.errorHandler(error);
+      return;
+    }
+  }
+  throw error;
+}
+
+// ---------- batch ----------
 
 let batchDepth = 0;
 const pending = new Set<Computation>();
@@ -46,6 +65,8 @@ export function batch<T>(fn: () => T): T {
   }
 }
 
+// ---------- signal at effect ----------
+
 export function createSignal<T>(value: T) {
   const subs = new Set<Computation>();
 
@@ -59,11 +80,11 @@ export function createSignal<T>(value: T) {
 
   const set = (next: T | ((prev: T) => T)) => {
     const v = typeof next === "function" ? (next as any)(value) : next;
-    if (Object.is(v, value)) return; // no changes, no update
+    if (Object.is(v, value)) return; 
     value = v;
     for (const effect of [...subs]) {
       if (batchDepth > 0)
-        pending.add(effect); // itabi muna
+        pending.add(effect);
       else effect.run();
     }
   };
@@ -79,13 +100,15 @@ export function createEffect(fn: () => void) {
     disposed: false,
     run() {
       if (effect.disposed) return;
-      cleanComputation(effect); // cleanup the prev run
+      cleanComputation(effect);
       const prevOwner = currentOwner;
       const prevEffect = currentEffect;
       currentOwner = effect;
       currentEffect = effect;
       try {
         fn();
+      } catch (error) {
+        handleError(error, effect);
       } finally {
         currentOwner = prevOwner;
         currentEffect = prevEffect;
@@ -93,8 +116,7 @@ export function createEffect(fn: () => void) {
     },
   };
 
-  // the parent (if there is)  will dispose this effect
-  onCleanup(() => {
+  addCleanup(() => {
     effect.disposed = true;
     cleanComputation(effect);
   });
@@ -102,8 +124,15 @@ export function createEffect(fn: () => void) {
   effect.run();
 }
 
+// ---------- owner, cleanup, lifecycle ----------
+
 export function onCleanup(fn: Cleanup) {
-  currentOwner?.cleanups.push(fn);
+  if (!currentOwner) {
+    warn(
+      "onCleanup() was called outside of a component or effect, so this cleanup will never run.",
+    );
+  }
+  addCleanup(fn);
 }
 
 export function createRoot<T>(fn: (dispose: () => void) => T): T {
@@ -125,15 +154,61 @@ export function onMount(fn: () => void) {
   Promise.resolve().then(() => {
     const prevOwner = currentOwner;
     const prevEffect = currentEffect;
-    currentOwner = owner; // to make the onCleanup work inside the onMount
-    currentEffect = null; // doesn't track signals
+    currentOwner = owner; 
+    currentEffect = null; 
     try {
       fn();
+    } catch (error) {
+      handleError(error, owner);
     } finally {
       currentOwner = prevOwner;
       currentEffect = prevEffect;
     }
   });
+}
+
+export function untrack<T>(fn: () => T): T {
+  const prev = currentEffect;
+  currentEffect = null;
+  try {
+    return fn();
+  } finally {
+    currentEffect = prev;
+  }
+}
+
+// ---------- error handling ----------
+
+export function catchError<T>(
+  fn: () => T,
+  handler: (error: unknown) => void,
+): T | undefined {
+  const owner: Owner = {
+    cleanups: [],
+    parent: currentOwner,
+    errorHandler: handler,
+  };
+  addCleanup(() => clean(owner));
+
+  const prevOwner = currentOwner;
+  currentOwner = owner;
+
+  let result: T | undefined;
+  let thrown = null as { error: unknown } | null;
+  try {
+    result = fn();
+  } catch (error) {
+    clean(owner); 
+    thrown = { error };
+  } finally {
+    currentOwner = prevOwner;
+  }
+
+  if (thrown) {
+    handler(thrown.error);
+    return undefined;
+  }
+  return result;
 }
 
 export interface Context<T> {
@@ -151,7 +226,7 @@ export function provide<T, R>(ctx: Context<T>, value: T, fn: () => R): R {
     parent: currentOwner,
     context: new Map([[ctx.id, value]]),
   };
-  onCleanup(() => clean(owner)); // lilinisin kapag nawala ang parent
+  addCleanup(() => clean(owner)); 
   const prev = currentOwner;
   currentOwner = owner;
   try {
@@ -162,18 +237,13 @@ export function provide<T, R>(ctx: Context<T>, value: T, fn: () => R): R {
 }
 
 export function useContext<T>(ctx: Context<T>): T {
+  if (!currentOwner) {
+    warn(
+      "useContext() was called outside of a component or effect, so it can only return the default value. Call it at the top of your component and use the value later.",
+    );
+  }
   for (let o = currentOwner; o; o = o.parent) {
     if (o.context?.has(ctx.id)) return o.context.get(ctx.id) as T;
   }
   return ctx.defaultValue;
-}
-
-export function untrack<T>(fn: () => T): T {
-  const prev = currentEffect;
-  currentEffect = null;
-  try {
-    return fn();
-  } finally {
-    currentEffect = prev;
-  }
 }

@@ -69,8 +69,11 @@ function exprOf(node: AnyNode | null | undefined): AnyNode | null {
   return node.expression.type === "JSXEmptyExpression" ? null : node.expression;
 }
 
-function collectControls(program: AnyNode): Map<string, "Show" | "For"> {
-  const controls = new Map<string, "Show" | "For">();
+type Control = "Show" | "For" | "ErrorBoundary";
+const CONTROLS = new Set<string>(["Show", "For", "ErrorBoundary"]);
+
+function collectControls(program: AnyNode): Map<string, Control> {
+  const controls = new Map<string, Control>();
   for (const node of program.body as AnyNode[]) {
     if (
       node.type !== "ImportDeclaration" ||
@@ -83,8 +86,8 @@ function collectControls(program: AnyNode): Map<string, "Show" | "For"> {
         spec.imported.type === "Identifier"
           ? spec.imported.name
           : spec.imported.value;
-      if (imported === "Show" || imported === "For")
-        controls.set(spec.local.name, imported);
+      if (CONTROLS.has(imported))
+        controls.set(spec.local.name, imported as Control);
     }
   }
   return controls;
@@ -108,7 +111,7 @@ export function transformJsx(code: string, id: string): CompileResult | null {
       plugins: file.endsWith(".tsx") ? ["jsx", "typescript"] : ["jsx"],
     }) as unknown as AnyNode;
   } catch {
-    return null; 
+    return null;
   }
 
   const controls = collectControls(ast.program);
@@ -159,17 +162,14 @@ export function transformJsx(code: string, id: string): CompileResult | null {
     changed = true;
     wrapChildren(el);
   };
-
-  const handleElement = (el: AnyNode) => {
+    const handleElement = (el: AnyNode) => {
     const nameNode = el.openingElement.name;
-    const name: string | null =
-      nameNode.type === "JSXIdentifier" ? nameNode.name : null;
+    const name: string | null = nameNode.type === "JSXIdentifier" ? nameNode.name : null;
     const isHost = name !== null && /^[a-z]/.test(name);
     const control = name !== null && !isHost ? controls.get(name) : undefined;
 
     for (const attr of el.openingElement.attributes as AnyNode[]) {
-      if (attr.type !== "JSXAttribute" || attr.name.type !== "JSXIdentifier")
-        continue;
+      if (attr.type !== "JSXAttribute" || attr.name.type !== "JSXIdentifier") continue;
       const expr = exprOf(attr.value);
       if (!expr) continue;
       const prop: string = attr.name.name;
@@ -179,14 +179,15 @@ export function transformJsx(code: string, id: string): CompileResult | null {
         if (containsCall(expr)) wrap(expr);
       } else if (control === "Show") {
         if (prop === "when" && containsCall(expr)) wrap(expr);
-        else if (prop === "fallback" && !PASS_THROUGH.has(expr.type))
-          wrap(expr);
+        else if (prop === "fallback" && !PASS_THROUGH.has(expr.type)) wrap(expr);
+      } else if (control === "ErrorBoundary") {
+        if (prop === "fallback" && !PASS_THROUGH.has(expr.type)) wrap(expr);
       } else if (control === "For") {
         if (prop === "each" && containsCall(expr)) wrap(expr);
       }
     }
 
-    if (control === "Show") wrapShowChildren(el);
+    if (control === "Show" || control === "ErrorBoundary") wrapShowChildren(el);
     else if (control !== "For") wrapChildren(el);
   };
 

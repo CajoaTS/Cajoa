@@ -26,5 +26,16 @@ export function cajoa(options: CajoaPluginOptions = {}): Plugin {
       const result = transformJsx(code, id);
       return result ? { code: result.code, map: result.map as never } : null;
     },
+
+    transformIndexHtml(_html, ctx) {
+      if (!ctx.server) return;
+      return [
+        {
+          tag: "script",
+          children: "globalThis.__CAJOA_DEV__ = true;",
+          injectTo: "head-prepend",
+        },
+      ];
+    },
   };
 }

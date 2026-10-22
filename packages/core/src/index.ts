@@ -5,6 +5,7 @@ export type { Child } from "./runtime/h";
 export * from "./runtime/render";
 export * from "./components/show";
 export * from "./components/for";
+export * from "./components/error-boundary";
 export * from "./jsx-runtime";
 export { setRenderer, getRenderer } from "./renderer";
 export type { Renderer, HostNode } from "./renderer/types";
