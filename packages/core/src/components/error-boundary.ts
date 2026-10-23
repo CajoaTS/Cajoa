@@ -1,17 +1,11 @@
-import type { Child } from "../runtime/h";
+import { materialize, type Child } from "../runtime/h";
 import { logError } from "../dev";
 import { catchError, createSignal, untrack } from "../reactivity/signal";
 
 type Lazy<T> = T | (() => T);
 
 function resolve<T>(value: Lazy<T>): T {
-  let current: T | (() => T) = value;
-
-  while (typeof current === "function") {
-    current = (current as () => T)();
-  }
-
-  return current as T;
+  return typeof value === "function" ? (value as () => T)() : value;
 }
 
 export function ErrorBoundary(props: {
@@ -57,7 +51,7 @@ export function ErrorBoundary(props: {
 
     const content = untrack(() =>
       catchError(
-        () => resolve(props.children ?? null),
+        () => materialize(resolve(props.children ?? null)),
         (error) => {
           if (creating) early = { error };
           else fail(error);
