@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "cajoa": "^0.12.1"
+    "cajoa": "^0.13.0"
   },
   "devDependencies": {
     "typescript": "^5.0.0",

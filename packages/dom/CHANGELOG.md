@@ -1,5 +1,12 @@
 # @cajoa/dom
 
+## 0.13.0
+
+### Patch Changes
+
+- Updated dependencies [d587d69]
+  - @cajoa/core@0.13.0
+
 ## 0.12.1
 
 ### Patch Changes
