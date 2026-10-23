@@ -404,10 +404,10 @@ The Vite plugin turns on dev mode on the dev server only (it sets `globalThis.__
 - [x] Router v2: nested routes, base path, query and hash
 - [x] Real-browser tests
 - [x] Error boundaries and dev-mode warnings
+- [x] Async data (`createResource`)
 
 **(next)**
 
-- [ ] Async data (`createResource`)
 - [ ] Stores (`createStore`), automatic batching, glitch-free updates
 - [ ] `Portal`, `Dynamic`, `Switch`/`Match`, lazy components
 - [ ] Typed JSX (HTML attributes and events)
