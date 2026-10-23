@@ -1,6 +1,6 @@
 {
   "name": "cajoa",
-  "version": "0.12.1",
+  "version": "0.13.0",
   "description": "A small, beginner-friendly frontend framework built on signals and JSX.",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -70,8 +70,8 @@
   "sideEffects": true,
   "dependencies": {
     "@babel/parser": "^8.0.7",
-    "@cajoa/core": "^0.12.1",
-    "@cajoa/dom": "^0.12.1",
+    "@cajoa/core": "^0.13.0",
+    "@cajoa/dom": "^0.13.0",
     "magic-string": "^0.30.21"
   },
   "peerDependencies": {

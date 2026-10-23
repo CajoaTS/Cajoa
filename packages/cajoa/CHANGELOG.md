@@ -1,5 +1,17 @@
 # cajoa
 
+## 0.13.0
+
+### Minor Changes
+
+- d587d69: Add `createResource` for async data: `const [user, { refetch, mutate }] = createResource(id, fetchUser)`. It loads when the source changes, ignores stale responses, keeps the previous data while reloading, exposes `loading()` and `error()`, and throws the error when the resource is read after a failure, so an `<ErrorBoundary>` can catch it.
+
+### Patch Changes
+
+- Updated dependencies [d587d69]
+  - @cajoa/core@0.13.0
+  - @cajoa/dom@0.13.0
+
 ## 0.12.1
 
 ### Patch Changes
