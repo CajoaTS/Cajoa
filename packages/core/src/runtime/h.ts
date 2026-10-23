@@ -23,30 +23,39 @@ export function h(
 
   for (const [key, value] of Object.entries(props ?? {})) {
     if (key === "ref") {
-      // hindi ito prop: tatawagin pagkatapos mabuo ang element
       if (typeof value === "function") ref = value;
       continue;
     }
     if (typeof value === "function" && !key.startsWith("on")) {
-      createEffect(() => r.setProp(el, key, value())); // reactive prop
+      createEffect(() => r.setProp(el, key, value()));
     } else {
       r.setProp(el, key, value);
     }
   }
   appendChildren(el, children);
 
-  // ref: isang beses lang, nakahanda na ang props at mga child, at hindi nagta-track ng signals
   const onRef = ref;
   if (onRef) untrack(() => onRef(el));
 
   return el as HostNode;
 }
 
+export function materialize(value: unknown): unknown {
+  if (typeof value !== "function") return value;
+  const holder = getRenderer().createFragment();
+  appendChildren(holder, [value as Child]);
+  return holder;
+}
+
 function toNodes(value: unknown): any[] {
   const r = getRenderer();
   const out: any[] = [];
-  for (const v of [value].flat(Infinity) as unknown[]) {
+  for (const v of ([value] as unknown[]).flat(Infinity) as unknown[]) {
     if (v == null || typeof v === "boolean") continue;
+    if (typeof v === "function") {
+      out.push(materialize(v)); 
+      continue;
+    }
     out.push(r.isNode(v) ? v : r.createText(String(v)));
   }
   return out;

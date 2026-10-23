@@ -280,20 +280,26 @@ function BoundaryPage() {
 render(
   () => (
     <div>
-      <Router base={import.meta.env.BASE_URL}>
-        <Route path="/" component={Shell}>
-          <Route path="" component={Home} />
-          <Route path="forms" component={FormsPage} />
-          <Route path="lists" component={ListPage} />
-          <Route path="svg" component={SvgPage} />
-          <Route path="long" component={LongPage} />
-          <Route path="search" component={SearchPage} />
-          <Route path="users/:id" component={UserPage} />
-          <Route path="boundary" component={BoundaryPage} />
-          <Route path="old" component={() => <Navigate to="/forms" />} />
-        </Route>
-        <Route path="*" component={NotFound} />
-      </Router>
+      <ErrorBoundary
+        fallback={(error: unknown) => (
+          <pre data-testid="app-error">{String(error)}</pre>
+        )}
+      >
+        <Router base={import.meta.env.BASE_URL}>
+          <Route path="/" component={Shell}>
+            <Route path="" component={Home} />
+            <Route path="forms" component={FormsPage} />
+            <Route path="lists" component={ListPage} />
+            <Route path="svg" component={SvgPage} />
+            <Route path="long" component={LongPage} />
+            <Route path="search" component={SearchPage} />
+            <Route path="users/:id" component={UserPage} />
+            <Route path="boundary" component={BoundaryPage} />
+            <Route path="old" component={() => <Navigate to="/forms" />} />
+          </Route>
+          <Route path="*" component={NotFound} />
+        </Router>
+      </ErrorBoundary>
     </div>
   ),
   document.getElementById("app")!,
