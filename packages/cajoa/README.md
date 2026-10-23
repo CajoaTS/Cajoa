@@ -252,6 +252,26 @@ import { ErrorBoundary } from "cajoa";
 - Like `Show`, it must sit inside an element, not be the root returned by `render` (`render` throws a clear error).
 - `catchError(fn, handler)` is the low-level building block.
 
+## Async data
+
+```tsx
+import { createResource, createSignal } from "cajoa";
+
+const [userId, setUserId] = createSignal(1);
+const [user, { refetch, mutate }] = createResource(userId, (id) =>
+  fetchUser(id),
+);
+
+<p>{user.loading() ? "Loading…" : user()?.name}</p>;
+```
+
+- `createResource(source, fetcher)` calls `fetcher(value)` whenever `source()` changes. The fetcher can return a value or a promise. With one argument, `createResource(fetcher)` loads once, and again on `refetch()`.
+- While `source()` is `false`, `null` or `undefined`, nothing is fetched and `user()` is `undefined`.
+- `user()` returns the data, and keeps returning the previous data while a reload is in progress. `user.loading()` and `user.error()` are reactive.
+- If the request failed, reading `user()` throws the error, so an `<ErrorBoundary>` can show a fallback. Use `user.error()` to read it without throwing.
+- A response that arrives after a newer request has started, or after the owner is disposed, is ignored.
+- `refetch()` loads again with the same source. `mutate(value)` sets the data directly (for example, an optimistic update).
+
 ### Dev mode
 
 The Vite plugin turns on dev mode on the dev server only (it sets `globalThis.__CAJOA_DEV__ = true`). In dev mode, Cajoa warns when `onCleanup` or `useContext` is called outside a component, and when `<For>` finds duplicate keys. It also logs every error caught by an `ErrorBoundary`. Production builds log nothing. Without the plugin, set the flag yourself.
@@ -307,6 +327,14 @@ The Vite plugin turns on dev mode on the dev server only (it sets `globalThis.__
 | `<ErrorBoundary fallback onError?>` | Shows `fallback` (an element, or `(error, reset) => …`) when something below it throws. |
 | `catchError(fn, handler)`           | Runs `fn`. Errors it throws, now or later (effects, `onMount`), go to `handler`.        |
 
+### Async data
+
+| Function                                  | What it does                                                                                   |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `createResource(source?, fetcher)`        | Loads data (sync or async) when `source()` changes. Returns `[resource, { refetch, mutate }]`. |
+| `resource()`                              | The data (the previous data while reloading). Throws if the request failed.                    |
+| `resource.loading()` / `resource.error()` | Reactive loading state and error.                                                              |
+
 ### Context
 
 | Function                  | What it does                                           |
@@ -358,6 +386,7 @@ The Vite plugin turns on dev mode on the dev server only (it sets `globalThis.__
 - Inside `<svg>`, the tags `<a>`, `<title>`, `<style>` and `<script>` are created as HTML elements (they share their names with HTML tags).
 - The compiler works on `.tsx` and `.jsx` files in Vite projects. `Show` and `For` are recognised only when imported from `cajoa` or `@cajoa/core`.
 - `ErrorBoundary` does not catch errors thrown in event handlers, timers or promises.
+- No `Suspense` yet: use `resource.loading()` to show a loading state.
 
 ## Roadmap
 

@@ -11,6 +11,7 @@ import {
   useParams,
   ErrorBoundary,
   useSearchParams,
+  createResource,
 } from "cajoa";
 
 // ---------- Layout ----------
@@ -39,6 +40,7 @@ function Shell() {
         <NavLink href="/users/1">User 1</NavLink>{" "}
         <NavLink href="/users/2">User 2</NavLink>{" "}
         <NavLink href="/boundary">Boundary</NavLink>{" "}
+        <NavLink href="/data">Data</NavLink>{" "}
         <Link href="/long#bottom">Bottom</Link>{" "}
         <span data-testid="shell-renders">{renders}</span>
       </nav>
@@ -276,6 +278,60 @@ function BoundaryPage() {
   );
 }
 
+const fakeUser = (id: number) =>
+  new Promise<{ name: string }>((resolve, reject) =>
+    setTimeout(
+      () =>
+        id === 13
+          ? reject(new Error("unlucky"))
+          : resolve({ name: `user-${id}` }),
+      400,
+    ),
+  );
+
+function DataPage() {
+  const [id, setId] = createSignal(1);
+  const [fetches, setFetches] = createSignal(0);
+  const [user, { refetch }] = createResource(id, (n) => {
+    setFetches((c) => c + 1);
+    return fakeUser(n);
+  });
+
+  return (
+    <section>
+      <button data-testid="next" onClick={() => setId((n) => n + 1)}>
+        next
+      </button>
+      <button data-testid="jump" onClick={() => setId(13)}>
+        jump to 13
+      </button>
+      <button data-testid="refetch" onClick={refetch}>
+        refetch
+      </button>
+      <p data-testid="status">{user.loading() ? "loading" : "ready"}</p>
+      <span data-testid="fetch-count">{fetches()}</span>
+      <ErrorBoundary
+        fallback={(error: unknown, reset: () => void) => (
+          <div>
+            <p data-testid="data-error">{(error as Error).message}</p>
+            <button
+              data-testid="data-retry"
+              onClick={() => {
+                setId(1);
+                reset();
+              }}
+            >
+              retry
+            </button>
+          </div>
+        )}
+      >
+        <p data-testid="user">{user()?.name ?? "-"}</p>
+      </ErrorBoundary>
+    </section>
+  );
+}
+
 // ---------- App ----------
 render(
   () => (
@@ -295,6 +351,7 @@ render(
             <Route path="search" component={SearchPage} />
             <Route path="users/:id" component={UserPage} />
             <Route path="boundary" component={BoundaryPage} />
+            <Route path="data" component={DataPage} />
             <Route path="old" component={() => <Navigate to="/forms" />} />
           </Route>
           <Route path="*" component={NotFound} />

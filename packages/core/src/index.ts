@@ -1,5 +1,6 @@
 ﻿export * from "./reactivity/signal";
 export * from "./reactivity/memo";
+export * from "./reactivity/resource";
 export { h } from "./runtime/h";
 export type { Child } from "./runtime/h";
 export * from "./runtime/render";
