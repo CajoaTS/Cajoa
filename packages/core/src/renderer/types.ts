@@ -9,6 +9,7 @@ export interface Renderer<N = any> {
   remove(node: N): void;
   nextSibling(node: N): N | null;
   parentNode(node: N): N | null;
+  portalRoot?(): N;
   clear(parent: N): void;
   setProp(el: N, name: string, value: unknown): void; // attribute O event handler
 }

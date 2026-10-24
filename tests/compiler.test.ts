@@ -139,3 +139,53 @@ test("ErrorBoundary: function fallbacks and children are left alone", () => {
     ),
   ).toBeNull();
 });
+
+const SW = 'import { Switch, Match } from "cajoa";\n';
+
+test("Switch and Match: when is wrapped and the branches are lazy", () => {
+  expect(
+    run(
+      SW +
+        "const a = <Switch fallback={<p>None</p>}><Match when={a()}><A /></Match><Match when={b}><B /></Match></Switch>;",
+    ),
+  ).toBe(
+    SW +
+      "const a = <Switch fallback={() => (<p>None</p>)}><Match when={() => (a())}>{() => (<A />)}</Match><Match when={b}>{() => (<B />)}</Match></Switch>;",
+  );
+});
+
+test("Portal: children are lazy but mount is left alone", () => {
+  const imp = 'import { Portal } from "cajoa";\n';
+  expect(
+    run(imp + "const a = <Portal mount={document.body}><Modal /></Portal>;"),
+  ).toBe(
+    imp +
+      "const a = <Portal mount={document.body}>{() => (<Modal />)}</Portal>;",
+  );
+});
+
+test("Suspense: fallback and children are lazy", () => {
+  const imp = 'import { Suspense } from "cajoa";\n';
+  expect(
+    run(
+      imp +
+        "const a = <Suspense fallback={<p>Loading</p>}><Page /></Suspense>;",
+    ),
+  ).toBe(
+    imp +
+      "const a = <Suspense fallback={() => (<p>Loading</p>)}>{() => (<Page />)}</Suspense>;",
+  );
+});
+
+test("Dynamic: is is wrapped, other props are not, children are reactive", () => {
+  const imp = 'import { Dynamic } from "cajoa";\n';
+  expect(
+    run(
+      imp +
+        "const a = <Dynamic is={pages[name()]} title={t()}>{x()}</Dynamic>;",
+    ),
+  ).toBe(
+    imp +
+      "const a = <Dynamic is={() => (pages[name()])} title={t()}>{() => (x())}</Dynamic>;",
+  );
+});

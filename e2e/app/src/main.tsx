@@ -12,6 +12,13 @@ import {
   ErrorBoundary,
   useSearchParams,
   createResource,
+  Portal,
+  Show,
+  Dynamic,
+  lazy,
+  Match,
+  Suspense,
+  Switch,
 } from "cajoa";
 
 // ---------- Layout ----------
@@ -41,6 +48,7 @@ function Shell() {
         <NavLink href="/users/2">User 2</NavLink>{" "}
         <NavLink href="/boundary">Boundary</NavLink>{" "}
         <NavLink href="/data">Data</NavLink>{" "}
+        <NavLink href="/flow">Flow</NavLink>{" "}
         <Link href="/long#bottom">Bottom</Link>{" "}
         <span data-testid="shell-renders">{renders}</span>
       </nav>
@@ -332,6 +340,69 @@ function DataPage() {
   );
 }
 
+// May antala para makita ang fallback
+const LazyPanel = lazy(() =>
+  new Promise<void>((resolve) => setTimeout(resolve, 600)).then(
+    () => import("./LazyPanel"),
+  ),
+);
+
+function FlowPage() {
+  const [state, setState] = createSignal("idle");
+  const [tag, setTag] = createSignal("h2");
+  const [open, setOpen] = createSignal(false);
+
+  return (
+    <section>
+      <select
+        data-testid="state"
+        value={state}
+        onChange={(e: Event) => setState((e.target as HTMLSelectElement).value)}
+      >
+        <option value="idle">idle</option>
+        <option value="busy">busy</option>
+        <option value="failed">failed</option>
+      </select>
+      <Switch fallback={<p data-testid="state-text">unknown</p>}>
+        <Match when={state() === "idle"}>
+          <p data-testid="state-text">nothing happening</p>
+        </Match>
+        <Match when={state() === "busy"}>
+          <p data-testid="state-text">working…</p>
+        </Match>
+      </Switch>
+
+      <button
+        data-testid="toggle-tag"
+        onClick={() => setTag((t) => (t === "h2" ? "h3" : "h2"))}
+      >
+        toggle heading
+      </button>
+      <Dynamic is={tag} data-testid="dynamic">
+        dynamic heading
+      </Dynamic>
+
+      <button data-testid="open" onClick={() => setOpen(true)}>
+        open
+      </button>
+      <Show when={open()}>
+        <Portal>
+          <div id="modal" data-testid="modal">
+            <p>modal content</p>
+            <button data-testid="close" onClick={() => setOpen(false)}>
+              close
+            </button>
+          </div>
+        </Portal>
+      </Show>
+
+      <Suspense fallback={<p data-testid="lazy-fallback">loading panel…</p>}>
+        <LazyPanel title="hello" />
+      </Suspense>
+    </section>
+  );
+}
+
 // ---------- App ----------
 render(
   () => (
@@ -352,6 +423,7 @@ render(
             <Route path="users/:id" component={UserPage} />
             <Route path="boundary" component={BoundaryPage} />
             <Route path="data" component={DataPage} />
+            <Route path="flow" component={FlowPage} />
             <Route path="old" component={() => <Navigate to="/forms" />} />
           </Route>
           <Route path="*" component={NotFound} />
