@@ -5,6 +5,7 @@ import {
   onCleanup,
   untrack,
 } from "./signal";
+import { trackPending } from "./suspense";
 
 export interface Resource<T> {
   (): T | undefined;
@@ -43,11 +44,17 @@ export function createResource(a: unknown, b?: unknown): any {
   const [version, setVersion] = createSignal(0);
   let run = 0;
 
+
+  const track = trackPending();
+  let release: (() => void) | undefined;
+  let settled = false;
+
   const finish = (
     id: number,
     outcome: { value: unknown } | { error: unknown },
   ) => {
-    if (id !== run) return;
+    if (id !== run) return; 
+    settled = true;
     batch(() => {
       setLoading(false);
       if ("error" in outcome) {
@@ -57,6 +64,8 @@ export function createResource(a: unknown, b?: unknown): any {
         setData(() => outcome.value);
       }
     });
+    release?.();
+    release = undefined;
   };
 
   createEffect(() => {
@@ -66,7 +75,9 @@ export function createResource(a: unknown, b?: unknown): any {
     run++;
     const id = run;
     onCleanup(() => {
-      run++;
+      run++; 
+      release?.();
+      release = undefined;
     });
 
     if (s === false || s === null || s === undefined) {
@@ -78,6 +89,7 @@ export function createResource(a: unknown, b?: unknown): any {
       return;
     }
 
+    if (!settled && track && !release) release = track();
     setLoading(true);
     setFailure(null);
 

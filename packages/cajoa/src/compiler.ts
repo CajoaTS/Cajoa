@@ -69,8 +69,48 @@ function exprOf(node: AnyNode | null | undefined): AnyNode | null {
   return node.expression.type === "JSXEmptyExpression" ? null : node.expression;
 }
 
-type Control = "Show" | "For" | "ErrorBoundary";
-const CONTROLS = new Set<string>(["Show", "For", "ErrorBoundary"]);
+type Control =
+  | "Show"
+  | "For"
+  | "ErrorBoundary"
+  | "Suspense"
+  | "Portal"
+  | "Match"
+  | "Switch"
+  | "Dynamic";
+
+const CONTROLS = new Set<string>([
+  "Show",
+  "For",
+  "ErrorBoundary",
+  "Suspense",
+  "Portal",
+  "Match",
+  "Switch",
+  "Dynamic",
+]);
+
+const LAZY_CHILDREN = new Set<Control>([
+  "Show",
+  "ErrorBoundary",
+  "Suspense",
+  "Portal",
+  "Match",
+]);
+
+const LAZY_FALLBACK = new Set<Control>([
+  "Show",
+  "ErrorBoundary",
+  "Suspense",
+  "Switch",
+]);
+
+const CALL_PROP: Partial<Record<Control, string>> = {
+  Show: "when",
+  Match: "when",
+  For: "each",
+  Dynamic: "is",
+};
 
 function collectControls(program: AnyNode): Map<string, Control> {
   const controls = new Map<string, Control>();
@@ -162,14 +202,17 @@ export function transformJsx(code: string, id: string): CompileResult | null {
     changed = true;
     wrapChildren(el);
   };
-    const handleElement = (el: AnyNode) => {
+
+  const handleElement = (el: AnyNode) => {
     const nameNode = el.openingElement.name;
-    const name: string | null = nameNode.type === "JSXIdentifier" ? nameNode.name : null;
+    const name: string | null =
+      nameNode.type === "JSXIdentifier" ? nameNode.name : null;
     const isHost = name !== null && /^[a-z]/.test(name);
     const control = name !== null && !isHost ? controls.get(name) : undefined;
 
     for (const attr of el.openingElement.attributes as AnyNode[]) {
-      if (attr.type !== "JSXAttribute" || attr.name.type !== "JSXIdentifier") continue;
+      if (attr.type !== "JSXAttribute" || attr.name.type !== "JSXIdentifier")
+        continue;
       const expr = exprOf(attr.value);
       if (!expr) continue;
       const prop: string = attr.name.name;
@@ -177,18 +220,20 @@ export function transformJsx(code: string, id: string): CompileResult | null {
       if (isHost) {
         if (prop === "ref" || prop === "key" || prop.startsWith("on")) continue;
         if (containsCall(expr)) wrap(expr);
-      } else if (control === "Show") {
-        if (prop === "when" && containsCall(expr)) wrap(expr);
-        else if (prop === "fallback" && !PASS_THROUGH.has(expr.type)) wrap(expr);
-      } else if (control === "ErrorBoundary") {
-        if (prop === "fallback" && !PASS_THROUGH.has(expr.type)) wrap(expr);
-      } else if (control === "For") {
-        if (prop === "each" && containsCall(expr)) wrap(expr);
+      } else if (control) {
+        if (prop === CALL_PROP[control] && containsCall(expr)) wrap(expr);
+        else if (
+          prop === "fallback" &&
+          LAZY_FALLBACK.has(control) &&
+          !PASS_THROUGH.has(expr.type)
+        ) {
+          wrap(expr);
+        }
       }
     }
 
-    if (control === "Show" || control === "ErrorBoundary") wrapShowChildren(el);
-    else if (control !== "For") wrapChildren(el);
+    if (control && LAZY_CHILDREN.has(control)) wrapShowChildren(el);
+    else if (control !== "For" && control !== "Switch") wrapChildren(el);
   };
 
   const visit = (node: AnyNode) => {

@@ -86,7 +86,8 @@ The plugin rewrites your JSX at build time. When an expression contains a functi
 
 - children and attributes of DOM elements (but not `ref`, `key` and `on*` props)
 - children of your own components
-- `when` and `each` of `Show` and `For`, and the `fallback` and children of `Show` and `ErrorBoundary`
+- `when` and `each` of `Show`, `Match` and `For`, and `is` of `Dynamic`
+- the `fallback` and the children of `Show`, `ErrorBoundary` and `Suspense`, the children of `Match` and `Portal`, and the `fallback` of `Switch`
 
 It does **not** change the props of your own components. They receive plain values. To pass a live value, pass the signal itself (`<Greeting name={name} />`) or a function.
 
@@ -271,6 +272,44 @@ const [user, { refetch, mutate }] = createResource(userId, (id) =>
 - If the request failed, reading `user()` throws the error, so an `<ErrorBoundary>` can show a fallback. Use `user.error()` to read it without throwing.
 - A response that arrives after a newer request has started, or after the owner is disposed, is ignored.
 - `refetch()` loads again with the same source. `mutate(value)` sets the data directly (for example, an optimistic update).
+- Inside a `<Suspense>`, the first load shows the fallback.
+
+## Switch, Match, Dynamic and Portal
+
+```tsx
+<Switch fallback={<p>Unknown</p>}>
+  <Match when={status() === "loading"}><Spinner /></Match>
+  <Match when={status() === "error"}><p>Something went wrong</p></Match>
+</Switch>
+
+<Dynamic is={view} title="Hello" />
+
+<Portal>
+  <div class="modal">…</div>
+</Portal>
+```
+
+- `Switch` renders the first `Match` whose `when` is truthy, otherwise `fallback`. The branches are created lazily, only when selected, and a branch is not re-created while it stays selected. `Match` must be a direct child of `Switch`.
+- `Dynamic` renders a tag name or a component that can change at runtime. `is` is a function that returns a tag name (`"h2"`) or a component, for example a signal. To render one component directly, write `is={() => Page}`. The other props are passed on. When you store a component in a signal, set it with `setView(() => Page)`: `setView(Page)` would call `Page` as an updater.
+- `Portal` renders its children somewhere else. `mount` is an element, and the default is `document.body`. The content is removed when the portal is disposed. DOM events bubble through the DOM tree, not the component tree.
+
+## Lazy components and Suspense
+
+```tsx
+import { lazy, Suspense } from "cajoa";
+
+const Settings = lazy(() => import("./Settings"));
+
+<Suspense fallback={<p>Loading…</p>}>
+  <Settings />
+</Suspense>;
+```
+
+- `lazy(loader)` loads a component the first time it is rendered. The loader returns a module with a default export (or the component itself). Once loaded, it renders without delay.
+- `<Suspense>` shows its `fallback` until everything inside it has finished its **first** load: lazy components and `createResource` calls. Then the content stays. A reload, or something that starts loading later, does not bring the fallback back.
+- The children are created right away (so loading can start) but stay hidden while the fallback shows.
+- A failed load is thrown, so an `<ErrorBoundary>` can catch it.
+- Like `Show`, `Suspense` must sit inside an element, not be the root returned by `render`.
 
 ### Dev mode
 
@@ -335,6 +374,16 @@ The Vite plugin turns on dev mode on the dev server only (it sets `globalThis.__
 | `resource()`                              | The data (the previous data while reloading). Throws if the request failed.                    |
 | `resource.loading()` / `resource.error()` | Reactive loading state and error.                                                              |
 
+### Control flow
+
+| Component                            | What it does                                                                 |
+| ------------------------------------ | ---------------------------------------------------------------------------- |
+| `<Switch fallback>` / `<Match when>` | Renders the first matching branch, or the fallback.                          |
+| `<Dynamic is>`                       | Renders a tag or component that can change. `is` is a function returning it. |
+| `<Portal mount?>`                    | Renders its children into another element (default: `document.body`).        |
+| `lazy(loader)`                       | A component loaded on first use (`() => import("./Page")`).                  |
+| `<Suspense fallback>`                | Shows the fallback until the first load of everything inside has finished.   |
+
 ### Context
 
 | Function                  | What it does                                           |
@@ -387,6 +436,7 @@ The Vite plugin turns on dev mode on the dev server only (it sets `globalThis.__
 - The compiler works on `.tsx` and `.jsx` files in Vite projects. `Show` and `For` are recognised only when imported from `cajoa` or `@cajoa/core`.
 - `ErrorBoundary` does not catch errors thrown in event handlers, timers or promises.
 - No `Suspense` yet: use `resource.loading()` to show a loading state.
+- `Suspense` shows its fallback for the first load only. Use `resource.loading()` for later reloads.
 
 ## Roadmap
 
@@ -405,11 +455,11 @@ The Vite plugin turns on dev mode on the dev server only (it sets `globalThis.__
 - [x] Real-browser tests
 - [x] Error boundaries and dev-mode warnings
 - [x] Async data (`createResource`)
+- [x] `Portal`, `Dynamic`, `Switch`/`Match`, lazy components
 
 **(next)**
 
 - [ ] Stores (`createStore`), automatic batching, glitch-free updates
-- [ ] `Portal`, `Dynamic`, `Switch`/`Match`, lazy components
 - [ ] Typed JSX (HTML attributes and events)
 - [ ] Docs site and tutorial
 - [ ] Benchmarks and a bundle-size budget

@@ -186,6 +186,7 @@ export const domRenderer: Renderer<Node> = {
   clear: (parent) => {
     (parent as Element).replaceChildren();
   },
+  portalRoot: () => document.body,
 
   setProp(el, key, value) {
     const e = el as HTMLElement;
