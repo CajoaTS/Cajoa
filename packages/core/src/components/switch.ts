@@ -8,6 +8,11 @@ function resolve<T>(value: Lazy<T>): T {
   return typeof value === "function" ? (value as () => T)() : value;
 }
 
+function resolveCondition(value: unknown): unknown {
+  while (typeof value === "function") value = (value as () => unknown)();
+  return value;
+}
+
 export interface MatchDef {
   __match: true;
   when: Lazy<unknown>;
@@ -33,7 +38,7 @@ export function Switch(props: { fallback?: Lazy<Child>; children?: unknown }) {
 
   const selected = createMemo(() => {
     for (let i = 0; i < matches.length; i++) {
-      if (resolve(matches[i].when)) return i;
+      if (resolveCondition(matches[i].when)) return i;
     }
     return -1;
   });

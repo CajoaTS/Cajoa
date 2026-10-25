@@ -1,4 +1,4 @@
-import type { Renderer } from "@cajoa/core";
+import { batch, type Renderer } from "@cajoa/core";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
@@ -123,8 +123,12 @@ function setEvent(el: Element, key: string, value: unknown) {
   }
 
   if (typeof value === "function") {
-    el.addEventListener(name, value as EventListener);
-    byName.set(name, value as EventListener);
+    const handler = value as (this: Element, event: Event) => void;
+    const listener: EventListener = (event) => {
+      batch(() => handler.call(el, event));
+    };
+    el.addEventListener(name, listener);
+    byName.set(name, listener);
   }
 }
 

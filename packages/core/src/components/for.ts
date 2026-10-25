@@ -20,7 +20,10 @@ export function For<T>(props: {
   });
 
   return () => {
-    const items = typeof props.each === "function" ? props.each() : props.each;
+    let source: unknown = props.each;
+    while (typeof source === "function") source = (source as () => unknown)();
+    const items = (source ?? []) as T[];
+
     const next = new Map<unknown, Entry>();
     const nodes: HostNode[] = [];
 

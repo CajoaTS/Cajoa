@@ -19,6 +19,8 @@ import {
   Match,
   Suspense,
   Switch,
+  createEffect,
+  createStore,
 } from "cajoa";
 
 // ---------- Layout ----------
@@ -49,6 +51,7 @@ function Shell() {
         <NavLink href="/boundary">Boundary</NavLink>{" "}
         <NavLink href="/data">Data</NavLink>{" "}
         <NavLink href="/flow">Flow</NavLink>{" "}
+        <NavLink href="/store">Store</NavLink>{" "}
         <Link href="/long#bottom">Bottom</Link>{" "}
         <span data-testid="shell-renders">{renders}</span>
       </nav>
@@ -403,6 +406,91 @@ function FlowPage() {
   );
 }
 
+interface Todo {
+  id: number;
+  text: string;
+  done: boolean;
+}
+
+function StorePage() {
+  const [todos, setTodos] = createStore({
+    items: [
+      { id: 1, text: "learn", done: false },
+      { id: 2, text: "build", done: false },
+      { id: 3, text: "ship", done: true },
+    ] as Todo[],
+  });
+  let nextTodoId = 4;
+
+  const [a, setA] = createSignal(0);
+  const [b, setB] = createSignal(0);
+  const [runs, setRuns] = createSignal(0);
+  createEffect(() => {
+    a();
+    b();
+    setRuns((n) => n + 1);
+  });
+
+  const indexOf = (id: number) => todos.items.findIndex((t) => t.id === id);
+
+  return (
+    <section>
+      <input
+        data-testid="todo-input"
+        onKeyDown={(e: KeyboardEvent) => {
+          if (e.key !== "Enter") return;
+          const input = e.target as HTMLInputElement;
+          const text = input.value.trim();
+          if (!text) return;
+          setTodos((draft) => {
+            draft.items.push({ id: nextTodoId++, text, done: false });
+          });
+          input.value = "";
+        }}
+      />
+      <ul>
+        <For each={todos.items}>
+          {(t: Todo) => (
+            <li data-testid="todo">
+              <input
+                type="checkbox"
+                aria-label={`done ${t.text}`}
+                checked={t.done}
+                onChange={() =>
+                  setTodos("items", indexOf(t.id), "done", (d) => !d)
+                }
+              />
+              <span class={t.done ? "done" : ""}>{t.text}</span>
+              <button
+                aria-label={`remove ${t.text}`}
+                onClick={() =>
+                  setTodos("items", (list) => list.filter((x) => x.id !== t.id))
+                }
+              >
+                x
+              </button>
+            </li>
+          )}
+        </For>
+      </ul>
+      <p data-testid="summary">
+        {todos.items.filter((t) => !t.done).length} left
+      </p>
+
+      <button
+        data-testid="bump"
+        onClick={() => {
+          setA((n) => n + 1);
+          setB((n) => n + 1);
+        }}
+      >
+        bump both
+      </button>
+      <span data-testid="batch-runs">{runs()}</span>
+    </section>
+  );
+}
+
 // ---------- App ----------
 render(
   () => (
@@ -424,6 +512,7 @@ render(
             <Route path="boundary" component={BoundaryPage} />
             <Route path="data" component={DataPage} />
             <Route path="flow" component={FlowPage} />
+            <Route path="store" component={StorePage} />
             <Route path="old" component={() => <Navigate to="/forms" />} />
           </Route>
           <Route path="*" component={NotFound} />
