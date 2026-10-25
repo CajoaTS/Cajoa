@@ -204,6 +204,7 @@ function SearchBox() {
 - `className` and `htmlFor` work. Inline string handlers like `onclick="..."` are ignored.
 - `ref` is a function that receives the element once it is created. Its props and children are ready, but it is not in the page yet, so use `onMount` if you need to measure it right away. Signals read inside `ref` are not tracked.
 - SVG works: `<svg>`, `<path>`, `<circle>`, gradients, filters and the other SVG tags are created in the SVG namespace. Write attributes as `stroke-width="2"` or `strokeWidth="2"`.
+- Event handlers are batched: several signal or store updates inside one handler cause a single update. This covers the part before the first `await`; after that, wrap updates in `batch(() => ...)`.
 
 ```tsx
 import { render, Router, Route, Link, useParams } from "cajoa";
@@ -292,6 +293,36 @@ const [user, { refetch, mutate }] = createResource(userId, (id) =>
 - `Switch` renders the first `Match` whose `when` is truthy, otherwise `fallback`. The branches are created lazily, only when selected, and a branch is not re-created while it stays selected. `Match` must be a direct child of `Switch`.
 - `Dynamic` renders a tag name or a component that can change at runtime. `is` is a function that returns a tag name (`"h2"`) or a component, for example a signal. To render one component directly, write `is={() => Page}`. The other props are passed on. When you store a component in a signal, set it with `setView(() => Page)`: `setView(Page)` would call `Page` as an updater.
 - `Portal` renders its children somewhere else. `mount` is an element, and the default is `document.body`. The content is removed when the portal is disposed. DOM events bubble through the DOM tree, not the component tree.
+
+## Stores
+
+```tsx
+import { createStore, For } from "cajoa";
+
+const [state, setState] = createStore({
+  user: { name: "Ada", age: 30 },
+  todos: [{ id: 1, text: "Learn Cajoa", done: false }],
+});
+
+<p>{state.user.name}</p>
+<For each={state.todos}>{(todo) => <li>{todo.text}</li>}</For>
+
+setState("user", "name", "Grace");                 // a path, then a value
+setState("todos", 0, "done", true);                // arrays work with indexes
+setState("user", { age: 31 });                     // an object is merged
+setState("todos", (list) => [...list, newTodo]);   // a function gets the previous value and replaces it
+setState((draft) => {                              // or edit a draft
+  draft.user.name = "Linus";
+  draft.todos.push(newTodo);
+});
+```
+
+- Reads are tracked per property: something that reads `state.user.name` does not update when `state.user.age` changes.
+- `state` is read-only. Changing it directly (`state.count = 1`) throws, so you never lose reactivity by accident.
+- An object is **merged** (shallow) into the existing one. A function **replaces** the value with what it returns. Setting a key to `undefined` removes it from an object.
+- Only plain objects and arrays are reactive. A `Date`, a `Map` or a class instance is a value you replace as a whole.
+- The store takes ownership of the object you pass in. Items keep their identity, so `<For>` reuses their DOM nodes.
+- One `setState` call is one update. `unwrap(state)` gives the plain object behind the store (do not change it).
 
 ## Lazy components and Suspense
 
@@ -384,6 +415,15 @@ The Vite plugin turns on dev mode on the dev server only (it sets `globalThis.__
 | `lazy(loader)`                       | A component loaded on first use (`() => import("./Page")`).                  |
 | `<Suspense fallback>`                | Shows the fallback until the first load of everything inside has finished.   |
 
+### Stores
+
+| Function                     | What it does                                                                |
+| ---------------------------- | --------------------------------------------------------------------------- |
+| `createStore(initial)`       | Returns `[state, setState]`. `state` is read-only and tracked per property. |
+| `setState(...path, value)`   | Sets a value (objects are merged, functions replace).                       |
+| `setState(draft => { ... })` | Edits a draft, as one update.                                               |
+| `unwrap(state)`              | The plain object behind the store.                                          |
+
 ### Context
 
 | Function                  | What it does                                           |
@@ -456,10 +496,11 @@ The Vite plugin turns on dev mode on the dev server only (it sets `globalThis.__
 - [x] Error boundaries and dev-mode warnings
 - [x] Async data (`createResource`)
 - [x] `Portal`, `Dynamic`, `Switch`/`Match`, lazy components
+- [x] Stores (`createStore`), automatic batching, glitch-free updates
 
 **(next)**
 
-- [ ] Stores (`createStore`), automatic batching, glitch-free updates
+- [ ] Glitch-free updates (memos that always agree with each other)
 - [ ] Typed JSX (HTML attributes and events)
 - [ ] Docs site and tutorial
 - [ ] Benchmarks and a bundle-size budget

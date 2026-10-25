@@ -82,7 +82,7 @@ test("For: wraps each and keeps the item function", () => {
     ),
   ).toBe(
     FOR +
-      "const a = <For each={() => (todos())}>{(t) => <li>{t.text}</li>}</For>;",
+      "const a = <For each={() => (todos())}>{(t) => <li>{() => (t.text)}</li>}</For>;",
   );
 });
 
@@ -188,4 +188,30 @@ test("Dynamic: is is wrapped, other props are not, children are reactive", () =>
     imp +
       "const a = <Dynamic is={() => (pages[name()])} title={t()}>{() => (x())}</Dynamic>;",
   );
+});
+
+test("property reads are reactive too (stores and props)", () => {
+  expect(run("const a = <p class={styles.box}>{state.count}</p>;")).toBe(
+    "const a = <p class={() => (styles.box)}>{() => (state.count)}</p>;",
+  );
+  expect(
+    none("const a = <button onClick={handlers.click}>x</button>;"),
+  ).toBeNull();
+});
+
+test("Show and For wrap a property read in when and each", () => {
+  expect(run(SHOW + "const a = <Show when={state.open}><p>x</p></Show>;")).toBe(
+    SHOW +
+      "const a = <Show when={() => (state.open)}>{() => (<p>x</p>)}</Show>;",
+  );
+  expect(
+    run(FOR + "const a = <For each={state.todos}>{(t) => <li>x</li>}</For>;"),
+  ).toBe(
+    FOR +
+      "const a = <For each={() => (state.todos)}>{(t) => <li>x</li>}</For>;",
+  );
+});
+
+test("a component's own props are still not wrapped", () => {
+  expect(none("const a = <Counter start={state.count} />;")).toBeNull();
 });

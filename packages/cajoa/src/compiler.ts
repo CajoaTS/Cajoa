@@ -4,6 +4,7 @@ import MagicString from "magic-string";
 type AnyNode = { type: string; start: number; end: number; [key: string]: any };
 
 const CORE_MODULES = new Set(["cajoa", "@cajoa/core"]);
+
 const SKIP_KEYS = new Set([
   "loc",
   "extra",
@@ -11,10 +12,13 @@ const SKIP_KEYS = new Set([
   "trailingComments",
   "innerComments",
 ]);
+
 const CALL_TYPES = new Set([
   "CallExpression",
   "OptionalCallExpression",
   "TaggedTemplateExpression",
+  "MemberExpression",
+  "OptionalMemberExpression",
 ]);
 
 const STOP_TYPES = new Set([
