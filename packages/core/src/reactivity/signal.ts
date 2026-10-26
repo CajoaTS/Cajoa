@@ -9,14 +9,28 @@ interface Owner {
   errorHandler?: (error: unknown) => void;
 }
 
-interface Computation extends Owner {
-  run: () => void;
-  deps: Set<Set<Computation>>; 
+
+interface Source {
+  observers: Set<Computation>;
+}
+
+
+const CLEAN: number = 0;
+const CHECK: number = 1; 
+const DIRTY: number = 2; 
+
+interface Computation extends Owner, Source {
+  fn: () => unknown;
+  isEffect: boolean;
+  state: number;
+  sources: Set<Source>;
   disposed: boolean;
+  hasValue: boolean; 
+  value: unknown; 
 }
 
 let currentOwner: Owner | null = null;
-let currentEffect: Computation | null = null;
+let listener: Computation | null = null; 
 
 function clean(owner: Owner) {
   const fns = owner.cleanups;
@@ -25,10 +39,11 @@ function clean(owner: Owner) {
 }
 
 function cleanComputation(c: Computation) {
-  for (const subs of c.deps) subs.delete(c); 
-  c.deps.clear();
-  clean(c);
+  for (const source of c.sources) source.observers.delete(c);
+  c.sources.clear();
+  clean(c); 
 }
+
 
 function addCleanup(fn: Cleanup) {
   currentOwner?.cleanups.push(fn);
@@ -44,15 +59,118 @@ function handleError(error: unknown, owner: Owner | null): void {
   throw error;
 }
 
-// ---------- batch ----------
+// ---------- scheduler ----------
 
 let batchDepth = 0;
-const pending = new Set<Computation>();
+let flushing = false;
+const queued = new Set<Computation>();
+
+const isComputation = (source: Source): source is Computation => "fn" in source;
+
+function track(source: Source) {
+  if (listener) {
+    source.observers.add(listener);
+    listener.sources.add(source);
+  }
+}
+
+function mark(node: Computation, state: number) {
+  if (node.disposed || node.state >= state) return;
+  const wasClean = node.state === CLEAN;
+  node.state = state;
+  if (!wasClean) return; 
+
+  if (node.isEffect) {
+    queued.add(node);
+  } else {
+    for (const observer of node.observers) mark(observer, CHECK);
+  }
+}
+
+function notify(source: Source) {
+  for (const observer of source.observers) mark(observer, DIRTY);
+  if (batchDepth === 0 && !flushing) flush();
+}
+
+function run(node: Computation) {
+  cleanComputation(node);
+  const prevOwner = currentOwner;
+  const prevListener = listener;
+  currentOwner = node;
+  listener = node;
+  node.state = CLEAN;
+  try {
+    const result = node.fn();
+    if (!node.isEffect) {
+      const changed = node.hasValue && !Object.is(node.value, result);
+      node.value = result;
+      node.hasValue = true;
+      if (changed) {
+        for (const observer of node.observers) {
+          if (observer.state === CHECK) observer.state = DIRTY;
+        }
+      }
+    }
+  } catch (error) {
+    handleError(error, node);
+  } finally {
+    currentOwner = prevOwner;
+    listener = prevListener;
+  }
+}
+
+function update(node: Computation) {
+  if (node.disposed) {
+    node.state = CLEAN;
+    return;
+  }
+  if (node.state === CHECK) {
+    for (const source of [...node.sources]) {
+      if (isComputation(source)) {
+        update(source);
+        if (node.state === DIRTY) break; 
+      }
+    }
+  }
+  if (node.state === DIRTY) run(node);
+  else node.state = CLEAN;
+}
 
 function flush() {
-  const effects = [...pending];
-  pending.clear();
-  effects.forEach((effect) => effect.run());
+  flushing = true;
+  let failure = null as { error: unknown } | null;
+  let steps = 0;
+
+  try {
+    while (queued.size > 0) {
+      if (++steps > 100_000) {
+        queued.clear();
+        failure ??= {
+          error: new Error(
+            "Cajoa: updates never settled. An effect probably keeps changing a signal that it also reads.",
+          ),
+        };
+        break;
+      }
+      const effect = queued.values().next().value as Computation;
+      queued.delete(effect);
+      try {
+        update(effect);
+      } catch (error) {
+        failure ??= { error }; 
+      }
+    }
+  } finally {
+    flushing = false;
+  }
+
+  if (failure) throw failure.error;
+}
+
+function dispose(node: Computation) {
+  node.disposed = true;
+  queued.delete(node);
+  cleanComputation(node);
 }
 
 export function batch<T>(fn: () => T): T {
@@ -61,20 +179,17 @@ export function batch<T>(fn: () => T): T {
     return fn();
   } finally {
     batchDepth--;
-    if (batchDepth === 0) flush();
+    if (batchDepth === 0 && !flushing) flush();
   }
 }
 
-// ---------- signal at effect ----------
+// ---------- signal, effect at memo ----------
 
 export function createSignal<T>(value: T) {
-  const subs = new Set<Computation>();
+  const source: Source = { observers: new Set() };
 
   const get = () => {
-    if (currentEffect) {
-      subs.add(currentEffect);
-      currentEffect.deps.add(subs);
-    }
+    track(source);
     return value;
   };
 
@@ -82,46 +197,43 @@ export function createSignal<T>(value: T) {
     const v = typeof next === "function" ? (next as any)(value) : next;
     if (Object.is(v, value)) return; 
     value = v;
-    for (const effect of [...subs]) {
-      if (batchDepth > 0)
-        pending.add(effect);
-      else effect.run();
-    }
+    notify(source);
   };
 
   return [get, set] as const;
 }
 
-export function createEffect(fn: () => void) {
-  const effect: Computation = {
+function createComputation(fn: () => unknown, isEffect: boolean): Computation {
+  return {
+    fn,
+    isEffect,
     cleanups: [],
     parent: currentOwner,
-    deps: new Set(),
+    sources: new Set(),
+    observers: new Set(),
+    state: DIRTY,
     disposed: false,
-    run() {
-      if (effect.disposed) return;
-      cleanComputation(effect);
-      const prevOwner = currentOwner;
-      const prevEffect = currentEffect;
-      currentOwner = effect;
-      currentEffect = effect;
-      try {
-        fn();
-      } catch (error) {
-        handleError(error, effect);
-      } finally {
-        currentOwner = prevOwner;
-        currentEffect = prevEffect;
-      }
-    },
+    hasValue: false,
+    value: undefined,
   };
+}
 
-  addCleanup(() => {
-    effect.disposed = true;
-    cleanComputation(effect);
-  });
+export function createEffect(fn: () => void) {
+  const node = createComputation(fn, true);
+  addCleanup(() => dispose(node)); 
+  run(node);
+}
 
-  effect.run();
+export function createMemo<T>(fn: () => T): () => T {
+  const node = createComputation(fn, false);
+  addCleanup(() => dispose(node));
+  run(node);
+
+  return () => {
+    if (node.state !== CLEAN) update(node);
+    track(node);
+    return node.value as T;
+  };
 }
 
 // ---------- owner, cleanup, lifecycle ----------
@@ -138,14 +250,14 @@ export function onCleanup(fn: Cleanup) {
 export function createRoot<T>(fn: (dispose: () => void) => T): T {
   const root: Owner = { cleanups: [], parent: currentOwner };
   const prevOwner = currentOwner;
-  const prevEffect = currentEffect;
+  const prevListener = listener;
   currentOwner = root;
-  currentEffect = null;
+  listener = null;
   try {
     return fn(() => clean(root));
   } finally {
     currentOwner = prevOwner;
-    currentEffect = prevEffect;
+    listener = prevListener;
   }
 }
 
@@ -153,27 +265,27 @@ export function onMount(fn: () => void) {
   const owner = currentOwner;
   Promise.resolve().then(() => {
     const prevOwner = currentOwner;
-    const prevEffect = currentEffect;
+    const prevListener = listener;
     currentOwner = owner; 
-    currentEffect = null; 
+    listener = null; 
     try {
       fn();
     } catch (error) {
       handleError(error, owner);
     } finally {
       currentOwner = prevOwner;
-      currentEffect = prevEffect;
+      listener = prevListener;
     }
   });
 }
 
 export function untrack<T>(fn: () => T): T {
-  const prev = currentEffect;
-  currentEffect = null;
+  const prev = listener;
+  listener = null;
   try {
     return fn();
   } finally {
-    currentEffect = prev;
+    listener = prev;
   }
 }
 
@@ -210,6 +322,8 @@ export function catchError<T>(
   }
   return result;
 }
+
+// ---------- context ----------
 
 export interface Context<T> {
   readonly id: symbol;

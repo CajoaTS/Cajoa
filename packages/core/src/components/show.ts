@@ -1,6 +1,5 @@
 ﻿import type { Child } from "../runtime/h";
-import { createMemo } from "../reactivity/memo";
-import { untrack } from "../reactivity/signal";
+import { createMemo, untrack } from "../reactivity/signal";
 
 type Lazy<T> = T | (() => T);
 
