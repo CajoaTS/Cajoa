@@ -363,7 +363,7 @@ The Vite plugin turns on dev mode on the dev server only (it sets `globalThis.__
 | --------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | `createSignal(value)` | Returns `[get, set]`. Reading `get()` inside an effect subscribes to it. `set` accepts a value or an updater function. |
 | `createEffect(fn)`    | Runs `fn` now and again whenever a signal it read changes.                                                             |
-| `createMemo(fn)`      | Cached computed value. Only notifies when the result changes.                                                          |
+| `createMemo(fn)`      | Cached computed value. It is computed when it is read, and it only notifies when the result changes.                   |
 | `batch(fn)`           | Groups several `set` calls into one update.                                                                            |
 | `untrack(fn)`         | Runs `fn` without subscribing to signals.                                                                              |
 
@@ -462,6 +462,7 @@ The Vite plugin turns on dev mode on the dev server only (it sets `globalThis.__
 - Inside `<For>`, return a single element (not a fragment), because `For` reuses that node.
 - `useContext` and `useParams` only work while a component is being created (or inside `onMount` / effects). Read them at the top of your component and use the value later in handlers.
 - Updating an object in place will not trigger effects. Set a new object instead.
+- Updates are glitch-free: when several signals or memos change together, each effect runs once, after everything it depends on is up to date, so it never sees a half-updated state. An update started inside an effect is queued and runs after that effect finishes. If an effect keeps changing a signal that it also reads, Cajoa stops with an error instead of looping forever.
 
 ## Known limitations
 
@@ -469,7 +470,6 @@ The Vite plugin turns on dev mode on the dev server only (it sets `globalThis.__
 - `<Show>` and `<Router>` return a function, so they must sit inside an element, not be the root returned by `render`.
 - Single-page apps need a server fallback to `index.html` for unknown paths.
 - `<select value>` works only when the `<option>` elements are direct children of the `<select>`.
-- `createMemo` can show a brief inconsistent state when memos depend on each other.
 - `set` calls are not batched automatically inside event handlers. Wrap them in `batch()`.
 - Types in the core use a loose `HostNode` type for now.
 - Inside `<svg>`, the tags `<a>`, `<title>`, `<style>` and `<script>` are created as HTML elements (they share their names with HTML tags).
@@ -497,10 +497,9 @@ The Vite plugin turns on dev mode on the dev server only (it sets `globalThis.__
 - [x] Async data (`createResource`)
 - [x] `Portal`, `Dynamic`, `Switch`/`Match`, lazy components
 - [x] Stores (`createStore`), automatic batching, glitch-free updates
+- [x] Glitch-free updates (memos that always agree with each other)
 
 **(next)**
-
-- [ ] Glitch-free updates (memos that always agree with each other)
 - [ ] Typed JSX (HTML attributes and events)
 - [ ] Docs site and tutorial
 - [ ] Benchmarks and a bundle-size budget
