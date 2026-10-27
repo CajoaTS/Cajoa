@@ -17,6 +17,16 @@ npm run test:e2e
 
 They run in CI as the `e2e` check. When you fix a browser-specific bug, add a test in `e2e/tests`.
 
+## Benchmarks and size budget
+
+```bash
+npm run bench           # reactivity micro-benchmarks in Node (also checks the update counts)
+npm run bench:browser   # row benchmarks in real Chromium, a bit noisy, run it locally
+npm run check:size      # gzip size of small apps vs size-budget.json (part of `npm run verify`)
+```
+
+If a change makes a bundle bigger than its budget, `verify` fails. If the growth is on purpose, run `npm run size:update` and commit `size-budget.json`, and say why in the PR.
+
 ## Making a change
 
 1. Branch from `main` and open a pull request. Do not push to `main` directly.
