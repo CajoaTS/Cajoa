@@ -17,6 +17,7 @@
     "tests",
     "playground",
     "create-cajoa/template/src",
-    "e2e"
+    "e2e",
+    "bench"
   ]
 }
