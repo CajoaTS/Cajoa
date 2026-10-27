@@ -12,7 +12,6 @@ const map = {
   "cajoa/jsx-dev-runtime": join(root, "packages/core/src/jsx-runtime.ts"),
 };
 
-/** Source code ng repo ang ginagamit (hindi ang dist), kaya hindi kailangang mag-build muna. */
 export const aliasPlugin = {
   name: "cajoa-source-alias",
   setup(build) {

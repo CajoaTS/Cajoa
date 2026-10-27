@@ -1,4 +1,4 @@
-import { batch, createSignal, For, render } from "cajoa";
+import { batch, createSelector, createSignal, For, render } from "cajoa";
 
 interface Row {
   id: number;
@@ -41,7 +41,6 @@ const nouns = [
   "burger",
 ];
 
-// Pare-pareho ang data sa bawat takbo para maihahambing
 let seed = 1;
 const random = (max: number) => {
   seed = (seed * 16807) % 2147483647;
@@ -62,6 +61,7 @@ function buildData(count: number): Row[] {
 
 const [data, setData] = createSignal<Row[]>([]);
 const [selected, setSelected] = createSignal<number | null>(null);
+const isSelected = createSelector(selected);
 
 const ops = {
   create: (n: number) =>
@@ -90,14 +90,13 @@ const ops = {
   clear: () => setData([]),
 };
 
-// Ito ang isinusulat ng compiler: ang mga reactive na bahagi ay nasa loob ng function
 render(
   () => (
     <table>
       <tbody>
         <For each={data}>
           {(row: Row) => (
-            <tr class={() => (selected() === row.id ? "danger" : "")}>
+            <tr class={() => (isSelected(row.id) ? "danger" : "")}>
               <td>{row.id}</td>
               <td>{row.label}</td>
             </tr>
@@ -119,13 +118,17 @@ const scenarios: Record<string, { setup?: () => void; run: () => void }> = {
   "update every 10th row": { setup: () => ops.create(1000), run: ops.update },
   "select row": { setup: () => ops.create(1000), run: ops.select },
   "swap rows": { setup: () => ops.create(1000), run: ops.swap },
+  "select row, 10,000 rows": {
+    setup: () => ops.create(10000),
+    run: ops.select,
+  },
+  "swap rows, 10,000 rows": { setup: () => ops.create(10000), run: ops.swap },
   "remove row": { setup: () => ops.create(1000), run: ops.remove },
   "clear 1,000 rows": { setup: () => ops.create(1000), run: ops.clear },
 };
 
 (window as any).__scenarios = Object.keys(scenarios);
 
-// Kasama sa oras ang pilit na layout, para hindi lang JavaScript ang nasusukat
 (window as any).__measure = (name: string, iterations: number) => {
   const scenario = scenarios[name];
   const samples: number[] = [];
@@ -137,7 +140,7 @@ const scenarios: Record<string, { setup?: () => void; run: () => void }> = {
     scenario.run();
     document.body.offsetHeight;
     const elapsed = performance.now() - start;
-    if (i >= 3) samples.push(elapsed); // ang unang 3 ay warmup
+    if (i >= 3) samples.push(elapsed);
   }
   ops.clear();
   return samples;
