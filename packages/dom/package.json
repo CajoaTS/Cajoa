@@ -1,6 +1,6 @@
 {
   "name": "@cajoa/dom",
-  "version": "0.16.0",
+  "version": "0.17.0",
   "description": "Cajoa for the browser: DOM renderer and router.",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -26,7 +26,7 @@
   ],
   "sideEffects": true,
   "peerDependencies": {
-    "@cajoa/core": "^0.16.0"
+    "@cajoa/core": "^0.17.0"
   },
   "scripts": {
     "build": "tsup src/index.ts --format esm,cjs --dts --clean",
