@@ -9,15 +9,13 @@ interface Owner {
   errorHandler?: (error: unknown) => void;
 }
 
-
 interface Source {
   observers: Set<Computation>;
 }
 
-
 const CLEAN: number = 0;
-const CHECK: number = 1; 
-const DIRTY: number = 2; 
+const CHECK: number = 1;
+const DIRTY: number = 2;
 
 interface Computation extends Owner, Source {
   fn: () => unknown;
@@ -25,12 +23,12 @@ interface Computation extends Owner, Source {
   state: number;
   sources: Set<Source>;
   disposed: boolean;
-  hasValue: boolean; 
-  value: unknown; 
+  hasValue: boolean;
+  value: unknown;
 }
 
 let currentOwner: Owner | null = null;
-let listener: Computation | null = null; 
+let listener: Computation | null = null;
 
 function clean(owner: Owner) {
   const fns = owner.cleanups;
@@ -41,9 +39,8 @@ function clean(owner: Owner) {
 function cleanComputation(c: Computation) {
   for (const source of c.sources) source.observers.delete(c);
   c.sources.clear();
-  clean(c); 
+  clean(c);
 }
-
 
 function addCleanup(fn: Cleanup) {
   currentOwner?.cleanups.push(fn);
@@ -78,7 +75,7 @@ function mark(node: Computation, state: number) {
   if (node.disposed || node.state >= state) return;
   const wasClean = node.state === CLEAN;
   node.state = state;
-  if (!wasClean) return; 
+  if (!wasClean) return;
 
   if (node.isEffect) {
     queued.add(node);
@@ -128,7 +125,7 @@ function update(node: Computation) {
     for (const source of [...node.sources]) {
       if (isComputation(source)) {
         update(source);
-        if (node.state === DIRTY) break; 
+        if (node.state === DIRTY) break;
       }
     }
   }
@@ -157,7 +154,7 @@ function flush() {
       try {
         update(effect);
       } catch (error) {
-        failure ??= { error }; 
+        failure ??= { error };
       }
     }
   } finally {
@@ -195,7 +192,7 @@ export function createSignal<T>(value: T) {
 
   const set = (next: T | ((prev: T) => T)) => {
     const v = typeof next === "function" ? (next as any)(value) : next;
-    if (Object.is(v, value)) return; 
+    if (Object.is(v, value)) return;
     value = v;
     notify(source);
   };
@@ -220,7 +217,7 @@ function createComputation(fn: () => unknown, isEffect: boolean): Computation {
 
 export function createEffect(fn: () => void) {
   const node = createComputation(fn, true);
-  addCleanup(() => dispose(node)); 
+  addCleanup(() => dispose(node));
   run(node);
 }
 
@@ -233,6 +230,42 @@ export function createMemo<T>(fn: () => T): () => T {
     if (node.state !== CLEAN) update(node);
     track(node);
     return node.value as T;
+  };
+}
+
+export function createSelector<T>(source: () => T): (key: T) => boolean {
+  const cells = new Map<T, Source>();
+  let previous = untrack(source);
+
+  createEffect(() => {
+    const next = source();
+    if (Object.is(next, previous)) return;
+    const old = previous;
+    previous = next;
+    batch(() => {
+      for (const key of [old, next]) {
+        const cell = cells.get(key);
+        if (cell) notify(cell);
+      }
+    });
+  });
+
+  return (key) => {
+    const current = untrack(source);
+    if (listener) {
+      let cell = cells.get(key);
+      if (!cell) {
+        cell = { observers: new Set() };
+        cells.set(key, cell);
+      }
+      track(cell);
+      const mine = cell;
+      listener.cleanups.push(() => {
+        if (mine.observers.size === 0 && cells.get(key) === mine)
+          cells.delete(key);
+      });
+    }
+    return Object.is(current, key);
   };
 }
 
@@ -266,8 +299,8 @@ export function onMount(fn: () => void) {
   Promise.resolve().then(() => {
     const prevOwner = currentOwner;
     const prevListener = listener;
-    currentOwner = owner; 
-    listener = null; 
+    currentOwner = owner;
+    listener = null;
     try {
       fn();
     } catch (error) {
@@ -310,7 +343,7 @@ export function catchError<T>(
   try {
     result = fn();
   } catch (error) {
-    clean(owner); 
+    clean(owner);
     thrown = { error };
   } finally {
     currentOwner = prevOwner;
@@ -340,7 +373,7 @@ export function provide<T, R>(ctx: Context<T>, value: T, fn: () => R): R {
     parent: currentOwner,
     context: new Map([[ctx.id, value]]),
   };
-  addCleanup(() => clean(owner)); 
+  addCleanup(() => clean(owner));
   const prev = currentOwner;
   currentOwner = owner;
   try {

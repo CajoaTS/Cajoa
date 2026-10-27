@@ -112,6 +112,15 @@ const [todos, setTodos] = createSignal([{ id: 1, text: "Learn Cajoa" }]);
 </Show>;
 ```
 
+```tsx
+const [selected, setSelected] = createSignal<number | null>(null);
+const isSelected = createSelector(selected);
+
+<For each={rows}>
+  {(row) => <tr class={isSelected(row.id) ? "danger" : ""}>...</tr>}
+</For>;
+```
+
 ## Routing
 
 ```tsx
@@ -359,13 +368,14 @@ The Vite plugin turns on dev mode on the dev server only (it sets `globalThis.__
 
 ### Reactivity
 
-| Function              | What it does                                                                                                           |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `createSignal(value)` | Returns `[get, set]`. Reading `get()` inside an effect subscribes to it. `set` accepts a value or an updater function. |
-| `createEffect(fn)`    | Runs `fn` now and again whenever a signal it read changes.                                                             |
-| `createMemo(fn)`      | Cached computed value. It is computed when it is read, and it only notifies when the result changes.                   |
-| `batch(fn)`           | Groups several `set` calls into one update.                                                                            |
-| `untrack(fn)`         | Runs `fn` without subscribing to signals.                                                                              |
+| Function                 | What it does                                                                                                                       |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `createSignal(value)`    | Returns `[get, set]`. Reading `get()` inside an effect subscribes to it. `set` accepts a value or an updater function.             |
+| `createEffect(fn)`       | Runs `fn` now and again whenever a signal it read changes.                                                                         |
+| `createMemo(fn)`         | Cached computed value. It is computed when it is read, and it only notifies when the result changes.                               |
+| `batch(fn)`              | Groups several `set` calls into one update.                                                                                        |
+| `untrack(fn)`            | Runs `fn` without subscribing to signals.                                                                                          |
+| `createSelector(source)` | Returns `isSelected(key)`. Only the old and the new key wake up when `source` changes, so picking a row in a big list stays cheap. |
 
 ### Components
 
@@ -463,6 +473,7 @@ The Vite plugin turns on dev mode on the dev server only (it sets `globalThis.__
 - `useContext` and `useParams` only work while a component is being created (or inside `onMount` / effects). Read them at the top of your component and use the value later in handlers.
 - Updating an object in place will not trigger effects. Set a new object instead.
 - Updates are glitch-free: when several signals or memos change together, each effect runs once, after everything it depends on is up to date, so it never sees a half-updated state. An update started inside an effect is queued and runs after that effect finishes. If an effect keeps changing a signal that it also reads, Cajoa stops with an error instead of looping forever.
+- Reordering a keyed list (`<For>`) only moves the nodes that have to move: swapping two rows moves two nodes, however long the list is.
 
 ## Known limitations
 
@@ -498,11 +509,14 @@ The Vite plugin turns on dev mode on the dev server only (it sets `globalThis.__
 - [x] `Portal`, `Dynamic`, `Switch`/`Match`, lazy components
 - [x] Stores (`createStore`), automatic batching, glitch-free updates
 - [x] Glitch-free updates (memos that always agree with each other)
+- [x] Benchmarks and bundle-size budget
 
 **(next)**
+
+- [ ] Server-side rendering (`@cajoa/server`)
+- [ ] Hydration
 - [ ] Typed JSX (HTML attributes and events)
-- [ ] Docs site and tutorial
-- [ ] Benchmarks and a bundle-size budget
+- [ ] Docs site built with Cajoa
 - [ ] 1.0 (stable API)
 
 ## Development

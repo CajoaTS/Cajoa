@@ -14,12 +14,12 @@ interface Scenario {
 }
 
 const results: Array<Record<string, string | number>> = [];
-let sink = 0; // para hindi alisin ng minifier ang mga binabasa
+let sink = 0; 
 
 const median = (values: number[]) =>
   [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)];
 
-/** Ang `make` ay paghahanda (hindi sinusukat). Ang `run` lang ang sinusukat. */
+
 function bench(name: string, ops: number, make: () => Scenario, runs = 9) {
   const samples: number[] = [];
   for (let i = 0; i < runs + 3; i++) {
@@ -29,7 +29,7 @@ function bench(name: string, ops: number, make: () => Scenario, runs = 9) {
     const elapsed = performance.now() - start;
     scenario.check?.();
     scenario.dispose();
-    if (i >= 3) samples.push(elapsed); // ang unang 3 ay warmup
+    if (i >= 3) samples.push(elapsed);
   }
   const mid = median(samples);
   results.push({

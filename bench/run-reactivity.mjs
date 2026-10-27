@@ -11,7 +11,7 @@ await build({
   bundle: true,
   minify: true,
   format: "esm",
-  platform: "node", // walang DOM: sinusubok din nito na Node-safe ang @cajoa/core
+  platform: "node", 
   plugins: [aliasPlugin],
   logLevel: "warning",
 });

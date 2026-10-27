@@ -1,6 +1,7 @@
 ﻿import { createEffect, untrack } from "../reactivity/signal";
 import { getRenderer } from "../renderer";
 import type { HostNode } from "../renderer/types";
+import { reconcile } from "./reconcile";
 
 export type Child =
   | string
@@ -53,31 +54,12 @@ function toNodes(value: unknown): any[] {
   for (const v of ([value] as unknown[]).flat(Infinity) as unknown[]) {
     if (v == null || typeof v === "boolean") continue;
     if (typeof v === "function") {
-      out.push(materialize(v)); 
+      out.push(materialize(v));
       continue;
     }
     out.push(r.isNode(v) ? v : r.createText(String(v)));
   }
   return out;
-}
-
-function reconcile(start: any, end: any, next: any[]) {
-  const r = getRenderer();
-  const keep = new Set(next);
-
-  let cur = r.nextSibling(start);
-  while (cur && cur !== end) {
-    const after = r.nextSibling(cur);
-    if (!keep.has(cur)) r.remove(cur);
-    cur = after;
-  }
-
-  const parent = r.parentNode(end)!;
-  let ref = r.nextSibling(start);
-  for (const node of next) {
-    if (node === ref) ref = r.nextSibling(ref);
-    else r.insert(parent, node, ref);
-  }
 }
 
 export function appendChildren(parent: any, children: Child[]) {
