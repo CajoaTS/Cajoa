@@ -1,5 +1,11 @@
 # create-cajoa
 
+## 0.4.8
+
+### Patch Changes
+
+- a0ce043: The starter uses cajoa 0.17.
+
 ## 0.4.7
 
 ### Patch Changes
