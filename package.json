@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "dev": "vite --open /playground/",
-    "build": "npm run build -w @cajoa/core && npm run build -w @cajoa/dom && npm run build -w cajoa",
+    "build": "npm run build -w @cajoa/core && npm run build -w @cajoa/dom && npm run build -w @cajoa/server && npm run build -w cajoa",
     "test": "vitest",
     "typecheck": "tsc --noEmit && npm run typecheck -w @cajoa/core",
     "sync": "node scripts/sync-readme.mjs",
@@ -17,7 +17,8 @@
     "check:sync": "node scripts/sync-readme.mjs --check && node scripts/sync-create-cajoa.mjs --check",
     "check:packages": "npm run check:package -w @cajoa/core -w @cajoa/dom -w cajoa",
     "check:exports": "node scripts/check-exports.mjs",
-    "verify": "npm run typecheck && vitest run && npm run build && npm run check:sync && npm run check:packages && npm run check:exports  && npm run check:size",
+    "verify": "npm run typecheck && vitest run && npm run build && npm run check:sync && npm run check:packages && npm run check:exports  && npm run check:size && npm run check:ssr",
+    "check:ssr": "node scripts/check-ssr.mjs",
     "changeset": "changeset",
     "version-packages": "changeset version && npm run sync && npm run sync:create && npm install --package-lock-only",
     "test:e2e": "playwright test",

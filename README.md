@@ -333,6 +333,26 @@ setState((draft) => {                              // or edit a draft
 - The store takes ownership of the object you pass in. Items keep their identity, so `<For>` reuses their DOM nodes.
 - One `setState` call is one update. `unwrap(state)` gives the plain object behind the store (do not change it).
 
+## Server-side rendering
+
+```tsx
+import { renderToString, renderToStringAsync } from "cajoa/server";
+
+const html = renderToString(() => <App />, { url: "/users/42" });
+
+const page = await renderToStringAsync(() => <App />, {
+  url: req.url,
+  onRedirect: (to, status) => res.redirect(status, to),
+});
+```
+
+- Sa server, ang `isServer()` ay `true`. Ang `onMount` ay hindi tumatakbo (kaya ligtas ang `window` doon), ang `ref` ay hindi tinatawag, at ang mga event handler ay hindi isinasama.
+- Ang `<Router>` ay gumagamit ng `url` ng request, at bawat request ay may sariling router state, kaya ligtas ang sabay-sabay na request. Ilagay ang mga component na gumagamit ng `useLocation`, `NavLink` at iba pa **sa loob ng** `<Router>`.
+- Ang `<Navigate>` ay tumatawag sa `onRedirect` imbes na mag-render.
+- Ang output ay may mga marker para sa hydration. Gamitin ang `hydratable: false` para sa static na HTML.
+- Ang `renderToStringAsync` ay may `timeout` (default 10 segundo) at nag-throw kapag lumampas.
+- Hindi pa tapos ang hydration: sa ngayon, ang `render()` sa client ay pumapalit sa laman ng container. Ang `hydrate()` ay susunod.
+
 ## Lazy components and Suspense
 
 ```tsx
@@ -466,6 +486,14 @@ The Vite plugin turns on dev mode on the dev server only (it sets `globalThis.__
 | `getRenderer()`         | Returns the current renderer.                                      |
 | `domRenderer`           | The built-in DOM renderer.                                         |
 
+### Server
+
+| Function                             | What it does                                                             |
+| ------------------------------------ | ------------------------------------------------------------------------ |
+| `renderToString(app, options?)`      | Renders to an HTML string (`cajoa/server`). Does not wait for resources. |
+| `renderToStringAsync(app, options?)` | Same, but waits for `createResource` and `lazy`.                         |
+| `isServer()`                         | `true` while rendering on the server.                                    |
+
 ## Good to know
 
 - `For` uses the item itself as the key by default. If you pass `key`, items with the same key are **not** re-rendered when their data changes, so keys must be unique and the item should hold its own signals if it needs to update.
@@ -510,10 +538,10 @@ The Vite plugin turns on dev mode on the dev server only (it sets `globalThis.__
 - [x] Stores (`createStore`), automatic batching, glitch-free updates
 - [x] Glitch-free updates (memos that always agree with each other)
 - [x] Benchmarks and bundle-size budget
+- [x] Server-side rendering (`@cajoa/server`)
 
 **(next)**
 
-- [ ] Server-side rendering (`@cajoa/server`)
 - [ ] Hydration
 - [ ] Typed JSX (HTML attributes and events)
 - [ ] Docs site built with Cajoa

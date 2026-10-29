@@ -1,8 +1,10 @@
 import {
+  ServerContext,
   createContext,
   createMemo,
   createSignal,
   h,
+  isServer,
   onCleanup,
   onMount,
   provide,
@@ -13,7 +15,7 @@ import {
 
 // ---------- Location at base path ----------
 
-interface RawLocation {
+export interface RouterLocation {
   pathname: string;
   search: string;
   hash: string;
@@ -21,7 +23,7 @@ interface RawLocation {
 
 const inBrowser = typeof window !== "undefined";
 
-const readRaw = (): RawLocation =>
+const readRaw = (): RouterLocation =>
   inBrowser
     ? {
         pathname: location.pathname,
@@ -29,9 +31,6 @@ const readRaw = (): RawLocation =>
         hash: location.hash,
       }
     : { pathname: "/", search: "", hash: "" };
-
-const [base, setBase] = createSignal("");
-const [raw, setRaw] = createSignal<RawLocation>(readRaw());
 
 function normalizeBase(value: string | undefined): string {
   const trimmed = (value ?? "").replace(/^\/+|\/+$/g, "");
@@ -46,38 +45,58 @@ function stripBase(pathname: string, prefix: string): string {
     : pathname;
 }
 
-function withBase(to: string): string {
-  const prefix = base();
+interface RouterState {
+  base: () => string;
+  setBase: (value: string) => void;
+  raw: () => RouterLocation;
+  setRaw: (value: RouterLocation) => void;
+  location: () => RouterLocation;
+  pathname: () => string;
+}
+
+function createRouterState(initial: RouterLocation): RouterState {
+  const [base, setBase] = createSignal("");
+  const [raw, setRaw] = createSignal<RouterLocation>(initial);
+  const location = createMemo(() => {
+    const r = raw();
+    return {
+      pathname: stripBase(r.pathname, base()),
+      search: r.search,
+      hash: r.hash,
+    };
+  });
+  const pathname = createMemo(() => location().pathname);
+  return { base, setBase, raw, setRaw, location, pathname };
+}
+
+const client = createRouterState(readRaw());
+const RouterStateContext = createContext<RouterState | null>(null);
+
+function useRouterState(): RouterState {
+  return isServer() ? (useContext(RouterStateContext) ?? client) : client;
+}
+
+function withBase(state: RouterState, to: string): string {
+  const prefix = state.base();
   return prefix && to.startsWith("/") && !to.startsWith("//")
     ? prefix + to
     : to;
 }
 
-const location$ = createMemo(() => {
-  const r = raw();
-  return {
-    pathname: stripBase(r.pathname, base()),
-    search: r.search,
-    hash: r.hash,
-  };
-});
+export const useLocation = () => useRouterState().location;
 
-const pathname$ = createMemo(() => location$().pathname);
-
-export const useLocation = () => location$;
-
-export const usePath = () => pathname$;
+export const usePath = () => useRouterState().pathname;
 
 function sync() {
   if (!inBrowser) return;
   const next = readRaw();
-  const prev = untrack(raw);
+  const prev = untrack(client.raw);
   if (
     next.pathname !== prev.pathname ||
     next.search !== prev.search ||
     next.hash !== prev.hash
   ) {
-    setRaw(next);
+    client.setRaw(next);
   }
 }
 
@@ -98,7 +117,7 @@ export interface NavigateOptions {
 export function navigate(to: string, options: NavigateOptions = {}) {
   if (!inBrowser) return;
   const url = new URL(
-    untrack(() => withBase(to)),
+    untrack(() => withBase(client, to)),
     location.href,
   );
 
@@ -142,7 +161,8 @@ export function useSearchParams(): [
     options?: { replace?: boolean },
   ) => void,
 ] {
-  const params = () => new URLSearchParams(location$().search);
+  const state = useRouterState();
+  const params = () => new URLSearchParams(state.location().search);
 
   const setParams = (
     values: Record<string, SearchParamValue>,
@@ -155,7 +175,7 @@ export function useSearchParams(): [
       else next.set(key, String(value));
     }
     const search = next.toString();
-    const { pathname, hash } = untrack(location$);
+    const { pathname, hash } = untrack(state.location);
     navigate(pathname + (search ? "?" + search : "") + hash, {
       replace: options.replace,
       scroll: false,
@@ -303,14 +323,32 @@ function renderLevel(matches: () => Match[], level: number): () => unknown {
 }
 
 export function Router(props: { base?: string; children?: unknown }) {
-  setBase(normalizeBase(props.base));
-  onCleanup(() => setBase(""));
+  const routes = collectRoutes(props.children);
+
+  if (isServer()) {
+    // Sa server: ang URL ng request ang batayan, at sariling state ang bawat request
+    const request = useContext(ServerContext);
+    const url = new URL(request?.url ?? "/", "http://localhost");
+    const state = createRouterState({
+      pathname: url.pathname,
+      search: url.search,
+      hash: "",
+    });
+    state.setBase(normalizeBase(props.base));
+    const matches = createMemo(
+      () => matchRoutes(routes, split(state.pathname()), {}) ?? [],
+    );
+    const level = renderLevel(matches, 0);
+    return () => provide(RouterStateContext, state, level);
+  }
+
+  client.setBase(normalizeBase(props.base));
+  onCleanup(() => client.setBase(""));
   listen();
   sync();
 
-  const routes = collectRoutes(props.children);
   const matches = createMemo(
-    () => matchRoutes(routes, split(pathname$()), {}) ?? [],
+    () => matchRoutes(routes, split(client.pathname()), {}) ?? [],
   );
 
   return renderLevel(matches, 0);
@@ -324,6 +362,7 @@ export function Link(props: {
   [key: string]: unknown;
 }) {
   const { href, children, ...rest } = props;
+  const state = useRouterState();
   const external = /^[a-z][a-z0-9+.-]*:|^\/\//i.test(href);
 
   const onClick = (e: MouseEvent) => {
@@ -338,7 +377,7 @@ export function Link(props: {
 
   return h(
     "a",
-    { ...rest, href: external ? href : () => withBase(href), onClick },
+    { ...rest, href: external ? href : () => withBase(state, href), onClick },
     children as Child,
   );
 }
@@ -369,7 +408,8 @@ export function NavLink(props: {
     children,
     ...rest
   } = props;
-  const active = () => isActive(pathname$(), href, end);
+  const state = useRouterState();
+  const active = () => isActive(state.pathname(), href, end);
 
   return Link({
     ...rest,
@@ -379,7 +419,19 @@ export function NavLink(props: {
   });
 }
 
-export function Navigate(props: { to: string; replace?: boolean }) {
+export function Navigate(props: {
+  to: string;
+  replace?: boolean;
+  status?: number;
+}) {
+  if (isServer()) {
+    const request = useContext(ServerContext);
+    request?.redirect(
+      withBase(useRouterState(), props.to),
+      props.status ?? 302,
+    );
+    return null;
+  }
   onMount(() => navigate(props.to, { replace: props.replace ?? true }));
   return null;
 }

@@ -1,4 +1,5 @@
 import { quietly } from "../dev";
+import { ServerContext } from "../ssr";
 import { createContext, useContext } from "./signal";
 
 export interface SuspenseState {
@@ -9,5 +10,7 @@ export const SuspenseContext = createContext<SuspenseState | null>(null);
 
 export function trackPending(): (() => () => void) | undefined {
   const state = quietly(() => useContext(SuspenseContext));
-  return state ? () => state.add() : undefined;
+  if (state) return () => state.add();
+  const server = quietly(() => useContext(ServerContext));
+  return server ? () => server.track() : undefined;
 }

@@ -2,7 +2,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const REQUIRED = {
-  cajoa: [".", "./jsx-runtime", "./jsx-dev-runtime", "./vite"],
+  cajoa: [".", "./jsx-runtime", "./jsx-dev-runtime", "./vite", "./server"],
 };
 
 let failed = false;

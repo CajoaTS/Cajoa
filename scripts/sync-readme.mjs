@@ -9,6 +9,7 @@ const targets = [
   ["LICENSE", "packages/core/LICENSE"],
   ["LICENSE", "packages/dom/LICENSE"],
   ["LICENSE", "create-cajoa/LICENSE"],
+  ["LICENSE", "packages/server/LICENSE"],
 ];
 
 let outOfSync = false;
