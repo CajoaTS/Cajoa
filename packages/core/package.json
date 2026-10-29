@@ -1,6 +1,6 @@
 {
   "name": "@cajoa/core",
-  "version": "0.17.0",
+  "version": "0.18.0",
   "description": "Cajoa core: signals, JSX runtime and the renderer interface.",
   "type": "module",
   "main": "./dist/index.cjs",
