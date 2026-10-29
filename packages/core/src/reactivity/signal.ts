@@ -1,4 +1,5 @@
 ﻿import { warn } from "../dev";
+import { isServer } from "../renderer";
 
 type Cleanup = () => void;
 
@@ -295,6 +296,7 @@ export function createRoot<T>(fn: (dispose: () => void) => T): T {
 }
 
 export function onMount(fn: () => void) {
+  if (isServer()) return;
   const owner = currentOwner;
   Promise.resolve().then(() => {
     const prevOwner = currentOwner;

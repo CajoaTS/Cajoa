@@ -2,7 +2,7 @@
 
 let current: Renderer | null = null;
 
-export function setRenderer(renderer: Renderer) {
+export function setRenderer(renderer: Renderer | null) {
   current = renderer;
 }
 
@@ -13,4 +13,12 @@ export function getRenderer(): Renderer {
     );
   }
   return current;
+}
+
+export function currentRenderer(): Renderer | null {
+  return current;
+}
+
+export function isServer(): boolean {
+  return current?.isServer === true;
 }

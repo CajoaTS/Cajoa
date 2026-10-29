@@ -36,7 +36,7 @@ export function h(
   appendChildren(el, children);
 
   const onRef = ref;
-  if (onRef) untrack(() => onRef(el));
+  if (onRef && !r.isServer) untrack(() => onRef(el)); 
 
   return el as HostNode;
 }

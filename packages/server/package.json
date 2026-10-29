@@ -1,0 +1,53 @@
+{
+  "name": "@cajoa/server",
+  "version": "0.17.0",
+  "description": "Cajoa on the server: render components to HTML.",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "peerDependencies": {
+    "@cajoa/core": "^0.17.0"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --clean",
+    "check:package": "publint && attw --pack ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CajoaTS/Cajoa.git",
+    "directory": "packages/server"
+  },
+  "keywords": [
+    "frontend",
+    "framework",
+    "ssr",
+    "server-side-rendering",
+    "cajoa"
+  ],
+  "author": "cjmgrc",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/CajoaTS/Cajoa/issues"
+  },
+  "homepage": "https://github.com/CajoaTS/Cajoa#readme"
+}

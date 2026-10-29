@@ -15,3 +15,6 @@ export * from "./components/lazy";
 export * from "./jsx-runtime";
 export { setRenderer, getRenderer } from "./renderer";
 export type { Renderer, HostNode } from "./renderer/types";
+export { currentRenderer, isServer } from "./renderer";
+export { ServerContext } from "./ssr";
+export type { ServerRequest } from "./ssr";

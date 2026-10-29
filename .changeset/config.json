@@ -6,7 +6,7 @@
   "changelog": "@changesets/cli/changelog",
   "commit": false,
   "ignore": [],
-  "fixed": [["cajoa", "@cajoa/core", "@cajoa/dom"]],
+  "fixed": [["cajoa", "@cajoa/core", "@cajoa/dom", "@cajoa/server"]],
   "linked": [],
   "updateInternalDependencies": "patch"
 }
