@@ -1,5 +1,12 @@
 # @cajoa/server
 
+## 0.19.0
+
+### Patch Changes
+
+- Updated dependencies [3afb3f0]
+  - @cajoa/core@0.19.0
+
 ## 0.18.0
 
 ### Minor Changes

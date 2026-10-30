@@ -1,6 +1,6 @@
 {
   "name": "create-cajoa",
-  "version": "0.4.9",
+  "version": "0.4.10",
   "description": "Scaffold a new Cajoa app",
   "type": "module",
   "bin": {
