@@ -10,8 +10,8 @@
       "@cajoa/dom": ["./packages/dom/src/index.ts"],
       "@cajoa/server": ["./packages/server/src/index.ts"],
       "cajoa/server": ["./packages/cajoa/src/server.ts"],
-      "cajoa/jsx-runtime": ["./packages/core/src/jsx-runtime.ts"],
-      "cajoa/jsx-dev-runtime": ["./packages/core/src/jsx-runtime.ts"]
+      "cajoa/jsx-runtime": ["./packages/cajoa/src/index.ts"],
+      "cajoa/jsx-dev-runtime": ["./packages/cajoa/src/index.ts"]
     }
   },
   "include": [

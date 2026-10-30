@@ -44,7 +44,7 @@ function Todos() {
   return (
     <section>
       <h2>Todo list</h2>
-      <input placeholder="Mag-type at pindutin ang Enter" onKeydown={add} />
+      <input placeholder="Mag-type at pindutin ang Enter" onKeyDown={add} />
       <Show
         when={() => todos().length > 0}
         fallback={() => <p>Walang tasks pa.</p>}

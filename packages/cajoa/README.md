@@ -208,7 +208,7 @@ function SearchBox() {
 ````
 
 - `value`, `checked` and `selected` are set as DOM properties, so they stay in sync even after the user typed. Write `value` after `type`, `min` and `max`.
-- `style` takes a string or an object (camelCase keys, kebab-case keys, or custom properties like `--accent`). Numbers are not converted to `px`, so write `"12px"`. For a reactive style, pass a function: `style={() => ({ color: color() })}`. An object with signals inside, like `style={{ color: color() }}`, is read once.
+- `style` is a string or an object (keys in camelCase or kebab-case), and the values are strings: `style={{ width: "100px" }}`. Cajoa does not add `px`, so a number would be ignored by the browser. Numbers are not converted to `px`, so write `"12px"`. For a reactive style, pass a function: `style={() => ({ color: color() })}`. An object with signals inside, like `style={{ color: color() }}`, is read once.
 - Events are native DOM events. `onChange` fires when a field loses focus, so use `onInput` for every keystroke. `onDoubleClick` listens to `dblclick`.
 - `className` and `htmlFor` work. Inline string handlers like `onclick="..."` are ignored.
 - `ref` is a function that receives the element once it is created. Its props and children are ready, but it is not in the page yet, so use `onMount` if you need to measure it right away. Signals read inside `ref` are not tracked.
@@ -352,6 +352,24 @@ const page = await renderToStringAsync(() => <App />, {
 - Ang output ay may mga marker para sa hydration. Gamitin ang `hydratable: false` para sa static na HTML.
 - Ang `renderToStringAsync` ay may `timeout` (default 10 segundo) at nag-throw kapag lumampas.
 - Hindi pa tapos ang hydration: sa ngayon, ang `render()` sa client ay pumapalit sa laman ng container. Ang `hydrate()` ay susunod.
+
+## TypeScript
+
+JSX is typed. The editor knows every HTML and SVG element, its attributes, and what each event gives you:
+
+```tsx
+<input
+  value={name()}
+  onInput={(e) => setName(e.currentTarget.value)} // e.currentTarget is an HTMLInputElement
+/>
+```
+
+- Every attribute accepts a value **or** a function that returns it (`class={() => ...}`). Events, `ref` and `children` do not.
+- `style` is a string or an object, and the values are strings: `style={{ width: "100px" }}`. Cajoa does not add `px`, so a number would be ignored by the browser.
+- ARIA booleans are strings: `aria-hidden="true"`. Use camelCase for multi-word attributes (`tabIndex`, `readOnly`, `maxLength`), and `class` or `className`, `for` or `htmlFor`.
+- `data-*` attributes and custom elements (`<my-widget>`) are accepted.
+- Rare SVG elements (`feGaussianBlur`, `animate`, ...) accept any attribute.
+- The types live in `@cajoa/dom`; `JSX`, `CSSProperties` and `TargetedEvent` are exported from `cajoa`.
 
 ## Lazy components and Suspense
 

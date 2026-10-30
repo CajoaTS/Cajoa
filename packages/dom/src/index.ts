@@ -1,7 +1,8 @@
 import { setRenderer } from "@cajoa/core";
 import { domRenderer } from "./dom-renderer";
 
-setRenderer(domRenderer); // DOM ang default kapag na-import ang package na ito
+setRenderer(domRenderer); 
 
 export { domRenderer } from "./dom-renderer";
 export * from "./router";
+export type { JSX, CSSProperties, TargetedEvent } from "./jsx";
