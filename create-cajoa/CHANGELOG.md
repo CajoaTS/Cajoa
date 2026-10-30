@@ -1,5 +1,11 @@
 # create-cajoa
 
+## 0.4.10
+
+### Patch Changes
+
+- 3afb3f0: The starter uses cajoa 0.19, with typed JSX.
+
 ## 0.4.9
 
 ### Patch Changes
