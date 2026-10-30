@@ -132,6 +132,7 @@ test("setting an event prop again replaces or removes the old listener", () => {
 });
 
 test("inline string handlers are ignored", () => {
+  // @ts-expect-error inline string handlers are rejected on purpose 
   const btn = (<button onclick="alert(1)">x</button>) as HTMLButtonElement;
   expect(btn.getAttribute("onclick")).toBeNull();
 });
