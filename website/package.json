@@ -1,0 +1,17 @@
+{
+  "name": "cajoa-website",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && vite build --ssr src/entry-server.tsx --outDir dist-ssr && node scripts/prerender.mjs",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "cajoa": "*"
+  },
+  "devDependencies": {
+    "vite": "^8.3.4"
+  }
+}

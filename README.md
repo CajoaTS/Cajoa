@@ -3,6 +3,8 @@
 A small, beginner-friendly frontend framework built on **signals** and **JSX**.
 No virtual DOM, no hooks rules, no re-rendering components.
 
+**Docs:** https://cajoats.github.io/Cajoa/
+
 > ⚠️ **Early stage.** The API may still change before 1.0.
 
 ## Why Cajoa?
@@ -168,7 +170,7 @@ render(
 
 ## Forms, styles and events
 
-````tsx
+```tsx
 const [name, setName] = createSignal("");
 const [agree, setAgree] = createSignal(false);
 
@@ -176,13 +178,13 @@ const [agree, setAgree] = createSignal(false);
   <input
     placeholder="Name"
     value={name}
-    onInput={(e) => setName(e.target.value)}
+    onInput={(e) => setName(e.currentTarget.value)}
   />
   <label>
     <input
       type="checkbox"
       checked={agree}
-      onChange={(e) => setAgree(e.target.checked)}
+      onChange={(e) => setAgree(e.currentTarget.checked)}
     />
     I agree
   </label>
@@ -190,6 +192,7 @@ const [agree, setAgree] = createSignal(false);
     Hello, {() => name() || "stranger"}!
   </p>
 </form>;
+```
 
 ## Refs and SVG
 
@@ -199,13 +202,12 @@ function SearchBox() {
 
   return (
     <div>
-      <input ref={(el: HTMLInputElement) => (input = el)} />
+      <input ref={(el) => (input = el)} />
       <button onClick={() => input?.focus()}>Focus</button>
     </div>
   );
-}```
-
-````
+}
+```
 
 - `value`, `checked` and `selected` are set as DOM properties, so they stay in sync even after the user typed. Write `value` after `type`, `min` and `max`.
 - `style` is a string or an object (keys in camelCase or kebab-case), and the values are strings: `style={{ width: "100px" }}`. Cajoa does not add `px`, so a number would be ignored by the browser. Numbers are not converted to `px`, so write `"12px"`. For a reactive style, pass a function: `style={() => ({ color: color() })}`. An object with signals inside, like `style={{ color: color() }}`, is read once.
@@ -346,12 +348,12 @@ const page = await renderToStringAsync(() => <App />, {
 });
 ```
 
-- Sa server, ang `isServer()` ay `true`. Ang `onMount` ay hindi tumatakbo (kaya ligtas ang `window` doon), ang `ref` ay hindi tinatawag, at ang mga event handler ay hindi isinasama.
-- Ang `<Router>` ay gumagamit ng `url` ng request, at bawat request ay may sariling router state, kaya ligtas ang sabay-sabay na request. Ilagay ang mga component na gumagamit ng `useLocation`, `NavLink` at iba pa **sa loob ng** `<Router>`.
-- Ang `<Navigate>` ay tumatawag sa `onRedirect` imbes na mag-render.
-- Ang output ay may mga marker para sa hydration. Gamitin ang `hydratable: false` para sa static na HTML.
-- Ang `renderToStringAsync` ay may `timeout` (default 10 segundo) at nag-throw kapag lumampas.
-- Hindi pa tapos ang hydration: sa ngayon, ang `render()` sa client ay pumapalit sa laman ng container. Ang `hydrate()` ay susunod.
+- On the server, `isServer()` is `true`. `onMount` does not run (so `window` is safe there), `ref` is not called, and event handlers are left out.
+- `<Router>` uses the `url` of the request, and every request has its own router state, so parallel requests are safe. Put components that use `useLocation`, `NavLink` and similar **inside** `<Router>`.
+- `<Navigate>` calls `onRedirect` instead of rendering.
+- The output has markers for hydration. Use `hydratable: false` for plain static HTML.
+- `renderToStringAsync` has a `timeout` (10 seconds by default) and throws when it is reached.
+- There is no hydration yet: in the browser, `render()` replaces the content of the container. `hydrate()` is planned.
 
 ## TypeScript
 
@@ -395,12 +397,13 @@ The Vite plugin turns on dev mode on the dev server only (it sets `globalThis.__
 
 ## Packages
 
-| Package        | What it is                                                                                 |
-| -------------- | ------------------------------------------------------------------------------------------ |
-| `cajoa`        | The package most apps install (core + DOM)                                                 |
-| `@cajoa/core`  | Renderer-agnostic core: signals, JSX runtime, `Show`, `For`, context, `Renderer` interface |
-| `@cajoa/dom`   | DOM renderer and router                                                                    |
-| `create-cajoa` | Project starter (`npm create cajoa@latest`)                                                |
+| Package         | What it is                                                                                           |
+| --------------- | ---------------------------------------------------------------------------------------------------- |
+| `cajoa`         | The package most apps install (core + DOM)                                                           |
+| `@cajoa/core`   | Renderer-agnostic core: signals, JSX runtime, `Show`, `For`, context, `Renderer` interface           |
+| `@cajoa/dom`    | DOM renderer and router                                                                              |
+| `create-cajoa`  | Project starter (`npm create cajoa@latest`)                                                          |
+| `@cajoa/server` | Server-side rendering: `renderToString` and `renderToStringAsync` (also available as `cajoa/server`) |
 
 ## API
 
@@ -523,16 +526,14 @@ The Vite plugin turns on dev mode on the dev server only (it sets `globalThis.__
 
 ## Known limitations
 
-- No SSR.
 - `<Show>` and `<Router>` return a function, so they must sit inside an element, not be the root returned by `render`.
+- No hydration yet: in the browser, `render()` replaces the content of the container, even if it was rendered on the server.
 - Single-page apps need a server fallback to `index.html` for unknown paths.
 - `<select value>` works only when the `<option>` elements are direct children of the `<select>`.
-- `set` calls are not batched automatically inside event handlers. Wrap them in `batch()`.
 - Types in the core use a loose `HostNode` type for now.
 - Inside `<svg>`, the tags `<a>`, `<title>`, `<style>` and `<script>` are created as HTML elements (they share their names with HTML tags).
 - The compiler works on `.tsx` and `.jsx` files in Vite projects. `Show` and `For` are recognised only when imported from `cajoa` or `@cajoa/core`.
 - `ErrorBoundary` does not catch errors thrown in event handlers, timers or promises.
-- No `Suspense` yet: use `resource.loading()` to show a loading state.
 - `Suspense` shows its fallback for the first load only. Use `resource.loading()` for later reloads.
 
 ## Roadmap
@@ -557,12 +558,12 @@ The Vite plugin turns on dev mode on the dev server only (it sets `globalThis.__
 - [x] Glitch-free updates (memos that always agree with each other)
 - [x] Benchmarks and bundle-size budget
 - [x] Server-side rendering (`@cajoa/server`)
+- [x] Typed JSX (HTML attributes and events)
+- [x] Docs site built with Cajoa
 
 **(next)**
 
 - [ ] Hydration
-- [ ] Typed JSX (HTML attributes and events)
-- [ ] Docs site built with Cajoa
 - [ ] 1.0 (stable API)
 
 ## Development

@@ -54,3 +54,14 @@ Releases are automated. Do not run `npm publish` by hand.
 - `create-cajoa`: starter (`npm create cajoa@latest`)
 - The root `README.md` and `LICENSE` are copied into packages by `npm run sync`.
 - The starter template's `cajoa` version is set by `npm run sync:create`.
+
+## Docs site
+
+The docs site is in `website/`. It is a Cajoa app that is prerendered with `renderToStringAsync` and published to GitHub Pages when `main` changes.
+
+```bash
+npm run build        # the site uses the built packages
+npm run docs:dev     # dev server
+npm run docs:build   # full build: client, server bundle and prerender (part of verify)
+npm run docs:preview # look at the result
+```
