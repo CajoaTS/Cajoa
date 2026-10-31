@@ -1,3 +1,10 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/CajoaTS/Cajoa/main/website/public/logo-light.png">
+    <img alt="Cajoa" src="https://raw.githubusercontent.com/CajoaTS/Cajoa/main/website/public/logo.png" width="96">
+  </picture>
+</p>
+
 # Cajoa
 
 A small, beginner-friendly frontend framework built on **signals** and **JSX**.
