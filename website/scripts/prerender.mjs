@@ -36,10 +36,10 @@ function page({ title, description }, html) {
     () => "<title>" + escapeHtml(title) + "</title>",
   );
   if (description) {
-    out = out.replace(
-      /(<meta name="description" content=")[^"]*(")/,
-      (_, start, end) => start + escapeHtml(description) + end,
-    );
+      out = out.replace(/(<meta property="og:title" content=")[^"]*(")/, (_, a, b) => a + escapeHtml(title) + b);
+  if (description) {
+    out = out.replace(/(<meta property="og:description" content=")[^"]*(")/, (_, a, b) => a + escapeHtml(description) + b);
+  }
   }
   return out;
 }

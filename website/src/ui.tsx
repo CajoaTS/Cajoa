@@ -1,19 +1,22 @@
 import { createSignal } from "cajoa";
 import { highlight, type Lang } from "./highlight";
+import { Icon } from "./icons";
 
-function CopyButton(props: { text: string }) {
+export function CopyButton(props: { text: string }) {
   const [copied, setCopied] = createSignal(false);
 
   return (
     <button
       class="copy"
+      aria-label="Copy to clipboard"
       onClick={() => {
         navigator.clipboard?.writeText(props.text);
         setCopied(true);
-        setTimeout(() => setCopied(false), 1500);
+        setTimeout(() => setCopied(false), 1600);
       }}
     >
-      {copied() ? "Copied" : "Copy"}
+      {() => <Icon name={copied() ? "check" : "copy"} size={14} />}
+      <span>{copied() ? "Copied" : "Copy"}</span>
     </button>
   );
 }
@@ -35,6 +38,18 @@ export function Code(props: { code: string; lang?: Lang; title?: string }) {
   );
 }
 
+export function Install(props: { command: string }) {
+  return (
+    <div class="install">
+      <span class="prompt" aria-hidden="true">
+        $
+      </span>
+      <code>{props.command}</code>
+      <CopyButton text={props.command} />
+    </div>
+  );
+}
+
 export function Callout(props: { title?: string; children?: unknown }) {
   return (
     <aside class="callout">
@@ -47,7 +62,7 @@ export function Callout(props: { title?: string; children?: unknown }) {
 export function Demo(props: { children?: unknown }) {
   return (
     <div class="demo">
-      <div class="demo-label">Try it</div>
+      <div class="demo-label">Live example</div>
       {props.children}
     </div>
   );

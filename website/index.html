@@ -3,12 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <title>Cajoa</title>
-    <meta
-      name="description"
-      content="Cajoa is a small, beginner-friendly frontend framework built on signals and JSX."
-    />
+    <meta name="description" content="Cajoa is a small, beginner-friendly frontend framework built on signals and JSX." />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Cajoa" />
+    <meta property="og:title" content="Cajoa" />
+    <meta property="og:description" content="Cajoa is a small, beginner-friendly frontend framework built on signals and JSX." />
+    <script>
+      // Apply the saved theme before the first paint, to avoid a flash
+      try {
+        var t = localStorage.getItem("cajoa-theme");
+        if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="app"><!--app--></div>

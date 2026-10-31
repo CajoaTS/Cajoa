@@ -1,6 +1,8 @@
-type Rows = Array<[string, string]>;
+type Rows = Array<[string, string]>; 
+import { slug } from "../site";
 
 const sections: Array<{ title: string; rows: Rows }> = [
+  
   {
     title: "Reactivity",
     rows: [
@@ -150,6 +152,8 @@ const sections: Array<{ title: string; rows: Rows }> = [
   },
 ];
 
+export const apiRows: Rows = sections.flatMap((section) => section.rows);
+
 export function Api() {
   return (
     <article>
@@ -160,7 +164,7 @@ export function Api() {
           <table>
             <tbody>
               {section.rows.map((row) => (
-                <tr>
+                <tr id={slug(row[0])}>
                   <td>
                     <code>{row[0]}</code>
                   </td>
