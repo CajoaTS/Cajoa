@@ -13,8 +13,15 @@ const {
   Navigate,
   useParams,
   isServer,
+  Title,
+  Meta,
 } = await import("cajoa");
-const { renderToString, renderToStringAsync } = await import("cajoa/server");
+
+const {
+  renderToString,
+  renderToStringAsync,
+  headToString,
+} = await import("cajoa/server");
 
 const [name] = createSignal("Ada");
 const page = () =>
@@ -80,5 +87,21 @@ renderToString(() => {
 });
 assert.equal(inside, true);
 assert.equal(isServer(), false);
+
+   // 5. Head: Title and Meta
+   const head = {};
+   renderToString(
+     () =>
+       h(
+         "main",
+         null,
+         Title({ children: "Hello" }),
+         Meta({ name: "description", content: "About" }),
+         h("p", null, "x")
+       ),
+     { head, hydratable: false }
+   );
+   assert.equal(head.title, "Hello");
+   assert.equal(headToString(head), '<title>Hello</title>\n<meta name="description" content="About">');
 
 console.log("SSR check passed (plain Node, no DOM).");

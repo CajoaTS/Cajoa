@@ -331,6 +331,6 @@ test("links get the base path, and NavLink knows the current page", () => {
   );
 
   expect(renderToString(app, { url: "/app/about", ...plain })).toBe(
-    '<nav><div><a href="/app/about">About</a><a class="nav active" href="/app/about">About</a></div></nav>',
+    '<nav><div><a href="/app/about">About</a><a class="nav active" aria-current="page" href="/app/about">About</a></div></nav>'
   );
 });

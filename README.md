@@ -362,6 +362,25 @@ const page = await renderToStringAsync(() => <App />, {
 - `renderToStringAsync` has a `timeout` (10 seconds by default) and throws when it is reached.
 - There is no hydration yet: in the browser, `render()` replaces the content of the container. `hydrate()` is planned.
 
+
+### Page title and meta tags
+
+```tsx
+import { Title, Meta } from "cajoa";
+
+<Title>About | My site</Title>
+<Meta name="description" content="What this site is about" />
+```
+
+- In the browser, `<Title>` sets `document.title` and puts the old title back when it is removed. `<Meta>` adds or updates a `<meta>` tag and removes it again. Both accept a function for a live value.
+- On the server they fill an object that you pass in. Use `headToString(head)` to put it in your HTML:
+
+```tsx
+const head = {};
+const html = await renderToStringAsync(() => <App />, { url: req.url, head });
+const page = template.replace("<!--head-->", headToString(head)).replace("<!--app-->", html);
+```
+
 ## TypeScript
 
 JSX is typed. The editor knows every HTML and SVG element, its attributes, and what each event gives you:
@@ -567,6 +586,7 @@ The Vite plugin turns on dev mode on the dev server only (it sets `globalThis.__
 - [x] Server-side rendering (`@cajoa/server`)
 - [x] Typed JSX (HTML attributes and events)
 - [x] Docs site built with Cajoa
+- [x] Page title and meta tags (<Title>, <Meta>)
 
 **(next)**
 
