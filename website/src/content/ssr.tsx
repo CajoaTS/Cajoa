@@ -49,7 +49,23 @@ const page = await renderToStringAsync(() => <App />, {
         same, but state in the DOM, such as focus, is not kept.{" "}
         <code>hydrate()</code> is planned.
       </Callout>
+      <h2>Page title and meta tags</h2>
+      <p>
+        <code>{"<Title>"}</code> and <code>{"<Meta>"}</code> set the title and the meta tags. In the browser they
+        change the document, and put things back when they are removed. On the server they fill an object that you
+        pass in, and <code>headToString</code> turns it into HTML.
+      </p>
+      <Code
+        code={`<Title>About | My site</Title>
+<Meta name="description" content="What this site is about" />
 
+// on the server
+const head = {};
+const html = await renderToStringAsync(() => <App />, { url: req.url, head });
+const page = template
+  .replace("<!--head-->", headToString(head))
+  .replace("<!--app-->", html);`}
+      />
       <h2>How this site is built</h2>
       <p>
         This site is a Cajoa app, in the <code>website</code> folder of the

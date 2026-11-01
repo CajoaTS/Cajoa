@@ -6,6 +6,7 @@ import {
   ServerContext,
   setRenderer,
   type Renderer,
+  type HeadData,
   type ServerRequest,
 } from "@cajoa/core";
 import { serialize } from "./serialize";
@@ -20,6 +21,7 @@ type Component = Parameters<typeof render>[0];
 export interface RenderOptions {
   url?: string;
   hydratable?: boolean;
+  head?: HeadData;
   onRedirect?: (to: string, status: number) => void;
 }
 
@@ -44,16 +46,16 @@ function release() {
   }
 }
 
-function makeRequest(
-  options: RenderOptions,
-  track: ServerRequest["track"],
-): ServerRequest {
-  return {
-    url: options.url ?? "/",
-    redirect: (to, status) => options.onRedirect?.(to, status),
-    track,
-  };
-}
+function makeRequest(options: RenderOptions, track: ServerRequest["track"]): ServerRequest {
+     const head = options.head ?? {};
+     head.meta ??= [];
+     return {
+       url: options.url ?? "/",
+       head,
+       redirect: (to, status) => options.onRedirect?.(to, status),
+       track,
+     };
+   }
 
 function mount(app: Component, request: ServerRequest, onError: () => void) {
   const container = stringRenderer.createFragment();
@@ -167,4 +169,21 @@ export async function renderToStringAsync(
     mounted?.dispose();
     release();
   }
+}
+
+const escapeHtml = (s: string) =>
+  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+   /** Turns the head object into <title> and <meta> tags, ready to put in your HTML. */
+ export function headToString(head: HeadData): string {
+   const parts: string[] = [];
+   if (head.title) parts.push("<title>" + escapeHtml(head.title) + "</title>");
+    for (const meta of head.meta ?? []) {
+      const key =
+       meta.name !== undefined
+         ? 'name="' + escapeHtml(meta.name) + '"'
+          : 'property="' + escapeHtml(meta.property ?? "") + '"';
+      parts.push("<meta " + key + ' content="' + escapeHtml(meta.content) + '">');
+    }
+  return parts.join("\n");
 }

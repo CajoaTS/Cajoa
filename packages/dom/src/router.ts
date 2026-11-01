@@ -240,8 +240,15 @@ const isRoute = (value: unknown): value is RouteDef =>
   value !== null &&
   (value as RouteDef).__route === true;
 
+  // The compiler may wrap children such as {pages.map(...)} in a function, so call functions to get the routes
 const collectRoutes = (children: unknown): RouteDef[] =>
-  (([children] as unknown[]).flat(Infinity) as unknown[]).filter(isRoute);
+  (([children] as unknown[]).flat(Infinity) as unknown[]).flatMap((child) =>
+    typeof child === "function"
+      ? collectRoutes(untrack(child as () => unknown))
+      : isRoute(child)
+        ? [child]
+        : [],
+  );
 
 export function Route(props: {
   path: string;
@@ -416,6 +423,7 @@ export function NavLink(props: {
     href,
     children,
     class: () => [cls, active() ? activeClass : ""].filter(Boolean).join(" "),
+    "aria-current": () => (active() ? "page" : undefined),
   });
 }
 

@@ -2,11 +2,12 @@ import {
   createEffect,
   createMemo,
   createSignal,
-  isServer,
   Link,
   NavLink,
   Outlet,
   usePath,
+  Meta, 
+  Title,
 } from "cajoa";
 import { Icon } from "./icons";
 import { Palette, SearchButton } from "./palette";
@@ -69,43 +70,56 @@ export function SiteLayout() {
   const path = usePath();
   const [searchOpen, setSearchOpen] = createSignal(false);
 
-  // The prerender script sets the title on the server. This keeps it right while you browse.
-  createEffect(() => {
-    if (isServer()) return;
+  // Find the current route metadata reactively
+  const page = createMemo(() => {
     const current = path().replace(/\/+$/, "") || "/";
-    document.title = routeMeta.find((r) => r.path === current)?.title ?? "Page not found | Cajoa";
+    return routeMeta.find((route) => route.path === current);
   });
 
   return (
     <div class="site">
+      <Title>{() => page()?.title ?? "Page not found | Cajoa"}</Title>
+
+      <Meta
+        name="description"
+        content={() => page()?.description ?? ""}
+      />
+
       <a class="skip" href="#main">
         Skip to content
       </a>
+
       <header class="site-header">
         <div class="header-inner">
           <Brand />
+
           <nav class="header-nav" aria-label="Main">
             <NavLink href="/docs">Docs</NavLink>
+
             <a href={REPO + "/releases"} rel="noopener">
               Releases
             </a>
+
             <a href={REPO} rel="noopener">
               GitHub
             </a>
           </nav>
+
           <div class="header-actions">
             <SearchButton onOpen={() => setSearchOpen(true)} />
             <ThemeToggle />
           </div>
         </div>
       </header>
+
       <Palette open={searchOpen} setOpen={setSearchOpen} />
+
       <Outlet />
+
       <Footer />
     </div>
   );
 }
-
 function pagerLink(page: Page | undefined, side: "prev" | "next") {
   if (!page) return <span />;
   return (

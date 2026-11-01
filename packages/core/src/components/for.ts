@@ -1,5 +1,6 @@
-﻿import { createRoot, onCleanup } from "../reactivity/signal";
+﻿import { createRoot, onCleanup, untrack } from "../reactivity/signal";
 import { warn } from "../dev";
+import type { Child } from "../runtime/h";
 import type { HostNode } from "../renderer/types";
 
 interface Entry {
@@ -11,6 +12,8 @@ export function For<T>(props: {
   each: T[] | (() => T[]);
   children: (item: T, index: number) => HostNode;
   key?: (item: T, index: number) => unknown;
+  /** Shown when the list is empty. */
+  fallback?: Child | (() => Child);
 }) {
   let cache = new Map<unknown, Entry>();
 
@@ -49,6 +52,12 @@ export function For<T>(props: {
       if (!next.has(k)) entry.dispose();
     });
     cache = next;
+
+    // An empty list shows the fallback, if there is one
+    if (nodes.length === 0 && props.fallback !== undefined) {
+      const fallback = props.fallback;
+      return untrack(() => (typeof fallback === "function" ? (fallback as () => Child)() : fallback));
+    }
 
     return nodes;
   };

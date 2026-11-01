@@ -45,11 +45,9 @@ function page({ title, description }, html) {
 }
 
 for (const route of routes) {
-  const html = await render(route.path);
-  const file =
-    route.path === "/"
-      ? join(dist, "index.html")
-      : join(dist, ...route.path.split("/").filter(Boolean), "index.html");
+   const { html, head } = await render(route.path);
+  const description = head.meta?.find((meta) => meta.name === "description")?.content ?? route.description;
+  const meta = { title: head.title ?? route.title, description };
   mkdirSync(dirname(file), { recursive: true });
   writeFileSync(file, page(route, html));
   console.log("prerendered " + route.path);

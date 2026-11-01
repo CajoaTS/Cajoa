@@ -18,3 +18,4 @@ export type { Renderer, HostNode } from "./renderer/types";
 export { currentRenderer, isServer } from "./renderer";
 export { ServerContext } from "./ssr";
 export type { ServerRequest } from "./ssr";
+export type { HeadData, HeadMeta } from "./ssr";
