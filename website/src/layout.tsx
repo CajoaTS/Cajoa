@@ -6,7 +6,7 @@ import {
   NavLink,
   Outlet,
   usePath,
-  Meta, 
+  Meta,
   Title,
 } from "cajoa";
 import { Icon } from "./icons";
@@ -19,8 +19,20 @@ import { Toc } from "./toc";
 function Brand() {
   return (
     <Link href="/" class="brand" aria-label="Cajoa home">
-      <img class="logo logo-for-light" src={asset("logo.png")} alt="" width="30" height="30" />
-      <img class="logo logo-for-dark" src={asset("logo-light.png")} alt="" width="30" height="30" />
+      <img
+        class="logo logo-for-light"
+        src={asset("logo.png")}
+        alt=""
+        width="30"
+        height="30"
+      />
+      <img
+        class="logo logo-for-dark"
+        src={asset("logo-light.png")}
+        alt=""
+        width="30"
+        height="30"
+      />
       <span>Cajoa</span>
     </Link>
   );
@@ -33,7 +45,8 @@ function Footer() {
         <div>
           <Brand />
           <p class="footer-blurb">
-            A small, typed frontend framework built on signals and JSX. Open source under Apache-2.0.
+            A small, typed frontend framework built on signals and JSX. Open
+            source under Apache-2.0.
           </p>
         </div>
         <div>
@@ -60,7 +73,8 @@ function Footer() {
         </div>
       </div>
       <p class="footer-bottom">
-        This site is built with Cajoa and prerendered with its own server renderer.
+        This site is built with Cajoa and prerendered with its own server
+        renderer.
       </p>
     </footer>
   );
@@ -80,10 +94,7 @@ export function SiteLayout() {
     <div class="site">
       <Title>{() => page()?.title ?? "Page not found | Cajoa"}</Title>
 
-      <Meta
-        name="description"
-        content={() => page()?.description ?? ""}
-      />
+      <Meta name="description" content={() => page()?.description ?? ""} />
 
       <a class="skip" href="#main">
         Skip to content
@@ -124,7 +135,9 @@ function pagerLink(page: Page | undefined, side: "prev" | "next") {
   if (!page) return <span />;
   return (
     <Link href={"/docs/" + page.slug} class={"pager-link " + side}>
-      <span class="pager-label">{side === "prev" ? "\u2190 Previous" : "Next \u2192"}</span>
+      <span class="pager-label">
+        {side === "prev" ? "\u2190 Previous" : "Next \u2192"}
+      </span>
       <strong>{page.title}</strong>
     </Link>
   );
@@ -136,7 +149,9 @@ export function DocsLayout() {
 
   const index = createMemo(() => {
     const current = path().replace(/\/+$/, "");
-    return current === "/docs" ? 0 : pages.findIndex((page) => "/docs/" + page.slug === current);
+    return current === "/docs"
+      ? 0
+      : pages.findIndex((page) => "/docs/" + page.slug === current);
   });
   const current = () => pages[index()];
 
@@ -177,7 +192,10 @@ export function DocsLayout() {
           class="edit-link"
           rel="noopener"
           href={() =>
-            REPO + "/edit/main/website/src/content/" + (current()?.slug ?? "getting-started") + ".tsx"
+            REPO +
+            "/edit/main/website/src/content/" +
+            (current()?.slug ?? "getting-started") +
+            ".tsx"
           }
         >
           Edit this page on GitHub
@@ -195,8 +213,20 @@ export function DocsLayout() {
 export function NotFound() {
   return (
     <main id="main" class="not-found">
-      <img class="logo-big logo-for-light" src={asset("logo.png")} alt="" width="96" height="96" />
-      <img class="logo-big logo-for-dark" src={asset("logo-light.png")} alt="" width="96" height="96" />
+      <img
+        class="logo-big logo-for-light"
+        src={asset("logo.png")}
+        alt=""
+        width="96"
+        height="96"
+      />
+      <img
+        class="logo-big logo-for-dark"
+        src={asset("logo-light.png")}
+        alt=""
+        width="96"
+        height="96"
+      />
       <h1>Page not found</h1>
       <p>This page does not exist, or it moved.</p>
       <div class="actions">

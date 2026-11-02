@@ -5,7 +5,11 @@ type Theme = "system" | "light" | "dark";
 
 const KEY = "cajoa-theme";
 const order: Theme[] = ["system", "light", "dark"];
-const icons: Record<Theme, IconName> = { system: "monitor", light: "sun", dark: "moon" };
+const icons: Record<Theme, IconName> = {
+  system: "monitor",
+  light: "sun",
+  dark: "moon",
+};
 const labels: Record<Theme, string> = {
   system: "System theme",
   light: "Light theme",
@@ -38,7 +42,9 @@ function applyTheme(theme: Theme) {
 
 export function ThemeToggle() {
   // index.html already applied the saved theme before the first paint
-  const [theme, setTheme] = createSignal<Theme>(isServer() ? "system" : readTheme());
+  const [theme, setTheme] = createSignal<Theme>(
+    isServer() ? "system" : readTheme(),
+  );
 
   const change = () => {
     const next = order[(order.indexOf(theme()) + 1) % order.length];

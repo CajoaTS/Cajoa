@@ -1,4 +1,11 @@
-import { createEffect, createSignal, For, isServer, onCleanup, Show } from "cajoa";
+import {
+  createEffect,
+  createSignal,
+  For,
+  isServer,
+  onCleanup,
+  Show,
+} from "cajoa";
 import { slug } from "./site";
 
 interface Heading {
@@ -21,7 +28,9 @@ export function Toc(props: { path: () => string }) {
     const timer = setTimeout(() => {
       observer?.disconnect();
 
-      const headings = Array.from(document.querySelectorAll<HTMLElement>(".content article h2"));
+      const headings = Array.from(
+        document.querySelectorAll<HTMLElement>(".content article h2"),
+      );
       const used = new Set<string>();
       for (const heading of headings) {
         if (!heading.id) {
@@ -53,7 +62,8 @@ export function Toc(props: { path: () => string }) {
       if (first) {
         first = false;
         const id = location.hash.slice(1);
-        if (id) document.getElementById(decodeURIComponent(id))?.scrollIntoView();
+        if (id)
+          document.getElementById(decodeURIComponent(id))?.scrollIntoView();
       }
     }, 0);
 
@@ -71,7 +81,10 @@ export function Toc(props: { path: () => string }) {
             <For each={items()}>
               {(item: Heading) => (
                 <li>
-                  <a href={"#" + item.id} class={() => (active() === item.id ? "active" : "")}>
+                  <a
+                    href={"#" + item.id}
+                    class={() => (active() === item.id ? "active" : "")}
+                  >
                     {item.text}
                   </a>
                 </li>

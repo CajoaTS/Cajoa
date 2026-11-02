@@ -51,8 +51,9 @@ const page = await renderToStringAsync(() => <App />, {
       </Callout>
       <h2>Page title and meta tags</h2>
       <p>
-        <code>{"<Title>"}</code> and <code>{"<Meta>"}</code> set the title and the meta tags. In the browser they
-        change the document, and put things back when they are removed. On the server they fill an object that you
+        <code>{"<Title>"}</code> and <code>{"<Meta>"}</code> set the title and
+        the meta tags. In the browser they change the document, and put things
+        back when they are removed. On the server they fill an object that you
         pass in, and <code>headToString</code> turns it into HTML.
       </p>
       <Code

@@ -15,7 +15,8 @@ import { search, type Entry } from "./search";
 function isTyping(target: EventTarget | null) {
   return (
     target instanceof HTMLElement &&
-    (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))
+    (target.isContentEditable ||
+      ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))
   );
 }
 
@@ -27,7 +28,11 @@ export function SearchButton(props: { onOpen: () => void }) {
   });
 
   return (
-    <button class="search-button" onClick={props.onOpen} aria-label="Search the docs">
+    <button
+      class="search-button"
+      onClick={props.onOpen}
+      aria-label="Search the docs"
+    >
       <Icon name="search" size={16} />
       <span class="search-label">Search docs</span>
       <kbd>{mod()} K</kbd>
@@ -35,7 +40,10 @@ export function SearchButton(props: { onOpen: () => void }) {
   );
 }
 
-export function Palette(props: { open: () => boolean; setOpen: (open: boolean) => void }) {
+export function Palette(props: {
+  open: () => boolean;
+  setOpen: (open: boolean) => void;
+}) {
   const [query, setQuery] = createSignal("");
   const [active, setActive] = createSignal(0);
   const results = createMemo(() => search(query()));
@@ -124,7 +132,9 @@ export function Palette(props: { open: () => boolean; setOpen: (open: boolean) =
               <For each={results()}>
                 {(entry: Entry) => (
                   <li
-                    class={() => (results()[active()] === entry ? "active" : "")}
+                    class={() =>
+                      results()[active()] === entry ? "active" : ""
+                    }
                     onMouseEnter={() => setActive(results().indexOf(entry))}
                     onClick={() => go(entry)}
                   >
@@ -136,7 +146,9 @@ export function Palette(props: { open: () => boolean; setOpen: (open: boolean) =
               </For>
             </ul>
             <Show when={results().length === 0}>
-              <p class="palette-empty">No results. Try "signal", "router" or "store".</p>
+              <p class="palette-empty">
+                No results. Try "signal", "router" or "store".
+              </p>
             </Show>
           </div>
         </div>

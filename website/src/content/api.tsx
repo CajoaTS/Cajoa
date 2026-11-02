@@ -1,8 +1,7 @@
-type Rows = Array<[string, string]>; 
+type Rows = Array<[string, string]>;
 import { slug } from "../site";
 
 const sections: Array<{ title: string; rows: Rows }> = [
-  
   {
     title: "Reactivity",
     rows: [
