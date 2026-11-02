@@ -41,7 +41,11 @@ export function Title(props: { children?: unknown }) {
  * Adds or updates a <meta> tag, for example <Meta name="description" content="..." />.
  * Use `property` instead of `name` for tags like og:title. `content` can be a function.
  */
-export function Meta(props: { name?: string; property?: string; content: unknown }) {
+export function Meta(props: {
+  name?: string;
+  property?: string;
+  content: unknown;
+}) {
   const attribute = props.name !== undefined ? "name" : "property";
   const key = props.name ?? props.property ?? "";
 
@@ -51,8 +55,13 @@ export function Meta(props: { name?: string; property?: string; content: unknown
       if (!request) return;
       const content = textOf(props.content);
       const list = (request.head.meta ??= []);
-      const entry: HeadMeta = attribute === "name" ? { name: key, content } : { property: key, content };
-      const at = list.findIndex((m) => (attribute === "name" ? m.name === key : m.property === key));
+      const entry: HeadMeta =
+        attribute === "name"
+          ? { name: key, content }
+          : { property: key, content };
+      const at = list.findIndex((m) =>
+        attribute === "name" ? m.name === key : m.property === key,
+      );
       if (at === -1) list.push(entry);
       else list[at] = entry;
     });

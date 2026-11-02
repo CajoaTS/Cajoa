@@ -86,7 +86,10 @@ function Showcase() {
       </div>
       <For each={tabs}>
         {(tab: Tab) => (
-          <div class={() => (active() === tab.id ? "tab-panel" : "tab-panel off")} role="tabpanel">
+          <div
+            class={() => (active() === tab.id ? "tab-panel" : "tab-panel off")}
+            role="tabpanel"
+          >
             <Code code={tab.code} title={tab.title} />
           </div>
         )}
@@ -95,7 +98,12 @@ function Showcase() {
   );
 }
 
-function Card(props: { span: string; title: string; text: string; code?: string }) {
+function Card(props: {
+  span: string;
+  title: string;
+  text: string;
+  code?: string;
+}) {
   return (
     <article
       class={"card " + props.span}
@@ -123,11 +131,12 @@ export function Landing() {
             <Icon name="arrow-right" size={14} />
           </a>
           <h1>
-            Build interfaces with <span class="mark">signals</span>, not re-renders.
+            Build interfaces with <span class="mark">signals</span>, not
+            re-renders.
           </h1>
           <p class="lead">
-            Cajoa is a small, typed, batteries-included framework. Components run once, and only the exact
-            text or attribute that changed updates.
+            Cajoa is a small, typed, batteries-included framework. Components
+            run once, and only the exact text or attribute that changed updates.
           </p>
           <div class="actions">
             <Link href="/docs/getting-started" class="button primary">
@@ -219,7 +228,10 @@ export function Landing() {
 
       <section class="cta">
         <h2>Ready to build something?</h2>
-        <p>Start with the starter, or add Cajoa to a Vite project you already have.</p>
+        <p>
+          Start with the starter, or add Cajoa to a Vite project you already
+          have.
+        </p>
         <div class="actions">
           <Link href="/docs/getting-started" class="button primary">
             Read the docs

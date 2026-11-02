@@ -240,7 +240,7 @@ const isRoute = (value: unknown): value is RouteDef =>
   value !== null &&
   (value as RouteDef).__route === true;
 
-  // The compiler may wrap children such as {pages.map(...)} in a function, so call functions to get the routes
+// The compiler may wrap children such as {pages.map(...)} in a function, so call functions to get the routes
 const collectRoutes = (children: unknown): RouteDef[] =>
   (([children] as unknown[]).flat(Infinity) as unknown[]).flatMap((child) =>
     typeof child === "function"

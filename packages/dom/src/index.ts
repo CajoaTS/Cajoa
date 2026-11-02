@@ -1,7 +1,7 @@
 import { setRenderer } from "@cajoa/core";
 import { domRenderer } from "./dom-renderer";
 
-setRenderer(domRenderer); 
+setRenderer(domRenderer);
 
 export { domRenderer } from "./dom-renderer";
 export * from "./router";

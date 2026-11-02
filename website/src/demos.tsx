@@ -1,4 +1,10 @@
-import { createEffect, createMemo, createSignal, createStore, For } from "cajoa";
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  createStore,
+  For,
+} from "cajoa";
 
 export function CounterDemo() {
   const [count, setCount] = createSignal(0);
@@ -27,10 +33,16 @@ export function ReactivityDemo() {
 
   const flash = (el: HTMLElement | undefined) => {
     if (!el || typeof el.animate !== "function") return;
-    el.animate([{ backgroundColor: "var(--signal)" }, { backgroundColor: "transparent" }], {
-      duration: 800,
-      easing: "ease-out",
-    });
+    el.animate(
+      [
+        { backgroundColor: "var(--signal)" },
+        { backgroundColor: "transparent" },
+      ],
+      {
+        duration: 800,
+        easing: "ease-out",
+      },
+    );
   };
 
   // Each effect runs when its own value changes. The first run happens before the page exists, so skip it.
@@ -144,7 +156,12 @@ export function TodoDemo() {
                   type="checkbox"
                   checked={todo.done}
                   onChange={() =>
-                    setState("items", state.items.findIndex((t) => t.id === todo.id), "done", (d) => !d)
+                    setState(
+                      "items",
+                      state.items.findIndex((t) => t.id === todo.id),
+                      "done",
+                      (d) => !d,
+                    )
                   }
                 />
                 <span class={todo.done ? "done" : ""}>{todo.text}</span>
@@ -152,7 +169,11 @@ export function TodoDemo() {
               <button
                 class="link"
                 aria-label={"Remove " + todo.text}
-                onClick={() => setState("items", (list) => list.filter((t) => t.id !== todo.id))}
+                onClick={() =>
+                  setState("items", (list) =>
+                    list.filter((t) => t.id !== todo.id),
+                  )
+                }
               >
                 x
               </button>
