@@ -1,0 +1,30 @@
+name: Bug report
+description: Something does not work the way the docs say
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you expect, and what did you see instead?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: How can we see it?
+      description: A small code example, or a link to a minimal repository or StackBlitz.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Cajoa version
+      placeholder: "0.20.0"
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Browser, Node version, Vite version, operating system.
