@@ -1,21 +1,62 @@
 type Cleanup = () => void;
+interface SignalOptions<T> {
+    /**
+     * How to tell that a new value is the same as the old one. The default is Object.is.
+     * Use `false` to notify on every write, even with the same value (for example after
+     * changing an object in place). Or pass your own function.
+     */
+    equals?: false | ((previous: T, next: T) => boolean);
+    /** A name for error messages (and, later, for the debugger). */
+    name?: string;
+}
+interface EffectOptions {
+    /** A name for error messages (and, later, for the debugger). */
+    name?: string;
+}
 declare function batch<T>(fn: () => T): T;
-declare function createSignal<T>(value: T): readonly [() => T, (next: T | ((prev: T) => T)) => void];
-declare function createEffect(fn: () => void): void;
-declare function createMemo<T>(fn: () => T): () => T;
+declare function createSignal<T>(value: T, options?: SignalOptions<T>): readonly [() => T, (next: T | ((prev: T) => T)) => void];
+declare function createEffect(fn: () => void, options?: EffectOptions): void;
+/**
+ * A cached computed value. It is computed when it is read (or when an effect needs it),
+ * and it only tells the listeners when the result changes.
+ */
+declare function createMemo<T>(fn: () => T, options?: SignalOptions<T>): () => T;
+/**
+ * For "which one is selected?". `isSelected(key)` only wakes the two keys that changed
+ * (the old and the new selection), even if thousands are listening.
+ */
 declare function createSelector<T>(source: () => T): (key: T) => boolean;
 declare function onCleanup(fn: Cleanup): void;
 declare function createRoot<T>(fn: (dispose: () => void) => T): T;
 declare function onMount(fn: () => void): void;
 declare function untrack<T>(fn: () => T): T;
+/**
+ * Runs `fn`. An error that it throws (or that the effects and onMount created inside it throw, even later)
+ * goes to `handler` instead of being thrown.
+ */
 declare function catchError<T>(fn: () => T, handler: (error: unknown) => void): T | undefined;
+declare function provide<T, R>(ctx: {
+    readonly id: symbol;
+    readonly defaultValue: T;
+}, value: T, fn: () => R): R;
+declare function useContext<T>(ctx: {
+    readonly id: symbol;
+    readonly defaultValue: T;
+}): T;
+
 interface Context<T> {
     readonly id: symbol;
     readonly defaultValue: T;
+    /**
+     * Everything created inside can read `value` with useContext().
+     * `value` is read once: pass a signal (or a function) if you need it to stay live.
+     */
+    Provider(props: {
+        value: T;
+        children?: unknown;
+    }): unknown;
 }
 declare function createContext<T>(defaultValue: T): Context<T>;
-declare function provide<T, R>(ctx: Context<T>, value: T, fn: () => R): R;
-declare function useContext<T>(ctx: Context<T>): T;
 
 interface Resource<T> {
     (): T | undefined;
@@ -63,7 +104,7 @@ interface Renderer<N = any> {
 type Child = string | number | boolean | null | undefined | HostNode | (() => unknown) | Child[];
 declare function h(tag: string, props: Record<string, any> | null, ...children: Child[]): HostNode;
 
-declare function render(component: () => HostNode, container: HostNode): () => void;
+declare function render(component: () => unknown, container: HostNode): () => void;
 
 type Lazy$4<T> = T | (() => T);
 declare function Show<T>(props: {
@@ -74,7 +115,8 @@ declare function Show<T>(props: {
 
 declare function For<T>(props: {
     each: T[] | (() => T[]);
-    children: (item: T, index: number) => HostNode;
+    /** `index` is a function. It gives the current position, and it follows the item when the list changes. */
+    children: (item: T, index: () => number) => HostNode;
     key?: (item: T, index: number) => unknown;
     /** Shown when the list is empty. */
     fallback?: Child | (() => Child);
@@ -164,4 +206,4 @@ interface ServerRequest {
 declare const ServerContext: Context<ServerRequest | null>;
 
 export { Dynamic, ErrorBoundary, For, Fragment, Match, Portal, ServerContext, Show, Suspense, Switch, batch, catchError, createContext, createEffect, createMemo, createResource, createRoot, createSelector, createSignal, createStore, currentRenderer, getRenderer, h, isServer, jsx, jsxDEV, jsxs, lazy, onCleanup, onMount, provide, render, setRenderer, untrack, unwrap, useContext };
-export type { Child, Context, HeadData, HeadMeta, HostNode, MatchDef, Renderer, Resource, ResourceActions, ServerRequest, SetStoreFunction };
+export type { Child, Context, EffectOptions, HeadData, HeadMeta, HostNode, MatchDef, Renderer, Resource, ResourceActions, ServerRequest, SetStoreFunction, SignalOptions };

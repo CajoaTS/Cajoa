@@ -1,4 +1,5 @@
 ﻿export * from "./reactivity/signal";
+export * from "./reactivity/context";
 export * from "./reactivity/resource";
 export * from "./reactivity/store";
 export { h } from "./runtime/h";

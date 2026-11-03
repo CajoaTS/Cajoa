@@ -44,6 +44,11 @@ export function Components() {
           Reordering only moves the nodes that have to move. Swapping two rows
           moves two nodes.
         </li>
+        <li>
+          The child function gets the index as a second argument, and it is a{" "}
+          <strong>function</strong>: <code>{"(item, i) => ... i() ..."}</code>.
+          It follows the item when the list is reordered.
+        </li>
       </ul>
 
       <h2>Switch and Match</h2>
@@ -95,25 +100,28 @@ onCleanup(() => {
         dispose by hand.
       </p>
 
-      <h2>Context</h2>
       <Code
         code={`const Theme = createContext("light");
 
-function Page() {
-  const theme = useContext(Theme); // read it at the top of the component
-  return <p>Theme: {theme}</p>;
-}
+    function Page() {
+      const theme = useContext(Theme); // read it at the top of the component
+      return <p>Theme: {theme}</p>;
+    }
 
-provide(Theme, "dark", () => <Page />);`}
+    <Theme.Provider value="dark">
+      <Page />
+    </Theme.Provider>`}
       />
+      <p>
+        <code>value</code> is read once. To keep it live, pass a signal or a
+        function. The function form{" "}
+        <code>provide(Theme, "dark", () =&gt; ...)</code> also works.
+      </p>
 
       <Callout title="Good to know">
-        <code>{"<Show>"}</code>, <code>{"<For>"}</code>,{" "}
-        <code>{"<Router>"}</code> and the other control components return a
-        function, so they must sit inside an element, not at the root of{" "}
-        <code>render</code>. <code>useContext</code> and <code>useParams</code>{" "}
-        only work while a component is being created, so read them at the top
-        and use the value later.
+        <code>useContext</code> and <code>useParams</code> only work while a
+        component is being created, so read them at the top and use the value
+        later.
       </Callout>
     </article>
   );

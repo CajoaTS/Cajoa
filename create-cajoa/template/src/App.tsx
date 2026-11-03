@@ -88,8 +88,8 @@ export function App() {
 
         <section class="features" aria-label="Features">
           <For each={features}>
-            {(feature: Feature, i: number) => {
-              const num = String(i + 1).padStart(2, "0");
+            {(feature: Feature, i: () => number) => {
+              const num = String(i() + 1).padStart(2, "0");
               return (
                 <article class="feature">
                   <span class="feature-num">{num}</span>

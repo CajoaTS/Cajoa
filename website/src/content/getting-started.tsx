@@ -7,10 +7,15 @@ export function GettingStarted() {
     <article>
       <h1>Getting started</h1>
       <p>
-        Cajoa is a small frontend framework built on signals and JSX. There is no virtual DOM. A component runs once,
-        and only the parts that depend on a signal update.
+        Cajoa is a small frontend framework built on signals and JSX. There is
+        no virtual DOM. A component runs once, and only the parts that depend on
+        a signal update.
       </p>
-
+      <h2>Requirements</h2>
+      <p>
+        Node.js 20 or newer, Vite 8 for the plugin, TypeScript 5 or newer if you
+        use TypeScript, and a modern browser.
+      </p>
       <h2>Create a project</h2>
       <p>The fastest way is the starter. It uses Vite and TypeScript.</p>
       <Code
@@ -24,8 +29,8 @@ npm run dev`}
       <h2>Add Cajoa to an existing Vite project</h2>
       <Code lang="bash" code="npm install cajoa" />
       <p>
-        Add the plugin to <code>vite.config.ts</code>. It makes your JSX reactive, and it sets Vite's JSX options for
-        you.
+        Add the plugin to <code>vite.config.ts</code>. It makes your JSX
+        reactive, and it sets Vite's JSX options for you.
       </p>
       <Code
         title="vite.config.ts"
@@ -63,11 +68,12 @@ render(Counter, document.getElementById("app")!);`}
         <CounterDemo />
       </Demo>
       <Callout title="Why does the number update by itself?">
-        <code>count</code> is a signal. The plugin turns <code>{"{count()}"}</code> into a small reactive
-        expression, so only that text changes. The component function does not run again.
+        <code>count</code> is a signal. The plugin turns{" "}
+        <code>{"{count()}"}</code> into a small reactive expression, so only
+        that text changes. The component function does not run again.
       </Callout>
       <p>
-        <code>render</code> needs an element. Components like <code>{"<Show>"}</code> or <code>{"<Router>"}</code>{" "}
+        Components like <code>{"<Show>"}</code> or <code>{"<Router>"}</code>{" "}
         must be inside an element, not at the root.
       </p>
       <p>

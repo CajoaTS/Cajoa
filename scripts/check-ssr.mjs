@@ -34,7 +34,7 @@ assert.equal(
   '<div class="box" id="a&quot;b"><p>Hello Ada</p><ul><li>x</li><li>y</li></ul></div>',
 );
 assert.equal(
-  renderToString(() => h("p", null, "Hi ", () => name())),
+  renderToString(() => h("p", null, "Hi ", () => name()), { hydratable: true }),
   "<p>Hi <!--$-->Ada<!--$--></p>",
 );
 

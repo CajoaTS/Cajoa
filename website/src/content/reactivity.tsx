@@ -18,6 +18,15 @@ setCount(5);             // write a value
 setCount((n) => n + 1);  // or compute it from the old value`}
       />
 
+      <p>
+        A write with the same value (compared with <code>Object.is</code>) does
+        nothing. Pass <code>{"{ equals: false }"}</code> to notify on every
+        write, for example after you changed an object in place, or your own
+        function to decide what counts as a change. <code>{"{ name }"}</code>{" "}
+        gives the signal a name for error messages. <code>createMemo</code>{" "}
+        takes the same options.
+      </p>
+
       <h2>Effects</h2>
       <p>An effect runs now, and again each time a signal it read changes.</p>
       <Code

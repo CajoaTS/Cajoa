@@ -1,4 +1,9 @@
-﻿import { createRoot, onCleanup, untrack } from "../reactivity/signal";
+﻿import {
+  createRoot,
+  createSignal,
+  onCleanup,
+  untrack,
+} from "../reactivity/signal";
 import { warn } from "../dev";
 import type { Child } from "../runtime/h";
 import type { HostNode } from "../renderer/types";
@@ -6,11 +11,13 @@ import type { HostNode } from "../renderer/types";
 interface Entry {
   node: HostNode;
   dispose: () => void;
+  setIndex: (index: number) => void;
 }
 
 export function For<T>(props: {
   each: T[] | (() => T[]);
-  children: (item: T, index: number) => HostNode;
+  /** `index` is a function. It gives the current position, and it follows the item when the list changes. */
+  children: (item: T, index: () => number) => HostNode;
   key?: (item: T, index: number) => unknown;
   /** Shown when the list is empty. */
   fallback?: Child | (() => Child);
@@ -39,10 +46,12 @@ export function For<T>(props: {
       }
       let entry = cache.get(k);
       if (!entry) {
-        entry = createRoot((dispose) => ({
-          node: props.children(item, i),
-          dispose,
-        }));
+        entry = createRoot((dispose) => {
+          const [index, setIndex] = createSignal(i);
+          return { node: props.children(item, index), dispose, setIndex };
+        });
+      } else {
+        entry.setIndex(i);
       }
       next.set(k, entry);
       nodes.push(entry.node);
@@ -56,7 +65,9 @@ export function For<T>(props: {
     // An empty list shows the fallback, if there is one
     if (nodes.length === 0 && props.fallback !== undefined) {
       const fallback = props.fallback;
-      return untrack(() => (typeof fallback === "function" ? (fallback as () => Child)() : fallback));
+      return untrack(() =>
+        typeof fallback === "function" ? (fallback as () => Child)() : fallback,
+      );
     }
 
     return nodes;

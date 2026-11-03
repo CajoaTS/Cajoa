@@ -90,19 +90,23 @@ test("signals, Show and For render their current value", () => {
   );
 });
 
-test("the output has markers for hydration unless you turn them off", () => {
+test("the output has markers for hydration only when you ask for them", () => {
   const [name] = createSignal("Ada");
-  expect(renderToString(() => <p>Hello {name()}</p>)).toBe(
-    "<p>Hello <!--$-->Ada<!--$--></p>",
-  );
   expect(
-    renderToString(() => (
-      <p>
-        {"a"}
-        {"b"}
-      </p>
-    )),
+    renderToString(() => <p>Hello {name()}</p>, { hydratable: true }),
+  ).toBe("<p>Hello <!--$-->Ada<!--$--></p>");
+  expect(
+    renderToString(
+      () => (
+        <p>
+          {"a"}
+          {"b"}
+        </p>
+      ),
+      { hydratable: true },
+    ),
   ).toBe("<p>a<!--|-->b</p>");
+  expect(renderToString(() => <p>Hello {name()}</p>)).toBe("<p>Hello Ada</p>");
 });
 
 test("select and textarea values", () => {
@@ -331,6 +335,6 @@ test("links get the base path, and NavLink knows the current page", () => {
   );
 
   expect(renderToString(app, { url: "/app/about", ...plain })).toBe(
-    '<nav><div><a href="/app/about">About</a><a class="nav active" aria-current="page" href="/app/about">About</a></div></nav>'
+    '<nav><div><a href="/app/about">About</a><a class="nav active" aria-current="page" href="/app/about">About</a></div></nav>',
   );
 });
