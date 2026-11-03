@@ -86,7 +86,7 @@
     "@cajoa/core": "^0.20.0",
     "@cajoa/dom": "^0.20.0",
     "@cajoa/server": "^0.20.0",
-    "magic-string": "^0.30.21"
+    "magic-string": "^1.4.5"
   },
   "peerDependencies": {
     "vite": "^8.0.0"
