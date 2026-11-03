@@ -1,5 +1,11 @@
 # create-cajoa
 
+## 0.4.12
+
+### Patch Changes
+
+- 6e02070: The starter uses cajoa 0.21 (the `For` index is now a function), and needs Node 20 or newer.
+
 ## 0.4.11
 
 ### Patch Changes
