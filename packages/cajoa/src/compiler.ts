@@ -213,6 +213,9 @@ export function transformJsx(code: string, id: string): CompileResult | null {
       nameNode.type === "JSXIdentifier" ? nameNode.name : null;
     const isHost = name !== null && /^[a-z]/.test(name);
     const control = name !== null && !isHost ? controls.get(name) : undefined;
+    const isProvider =
+      nameNode.type === "JSXMemberExpression" &&
+      nameNode.property.name === "Provider";
 
     for (const attr of el.openingElement.attributes as AnyNode[]) {
       if (attr.type !== "JSXAttribute" || attr.name.type !== "JSXIdentifier")
@@ -236,7 +239,8 @@ export function transformJsx(code: string, id: string): CompileResult | null {
       }
     }
 
-    if (control && LAZY_CHILDREN.has(control)) wrapShowChildren(el);
+    if ((control && LAZY_CHILDREN.has(control)) || isProvider)
+      wrapShowChildren(el);
     else if (control !== "For" && control !== "Switch") wrapChildren(el);
   };
 

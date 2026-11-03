@@ -6,8 +6,8 @@ const sections: Array<{ title: string; rows: Rows }> = [
     title: "Reactivity",
     rows: [
       [
-        "createSignal(value)",
-        "Returns [get, set]. Reading get() inside an effect subscribes to it.",
+        "createSignal(value, options?)",
+        "Returns [get, set]. Options: equals and name.",
       ],
       [
         "createEffect(fn)",
@@ -25,7 +25,7 @@ const sections: Array<{ title: string; rows: Rows }> = [
       ["untrack(fn)", "Runs fn without subscribing to signals."],
       [
         "onMount(fn)",
-        "Runs fn after the component is rendered. Does not run on the server.",
+        "Mounts anything a component can return, even <Show> or <Router>. Returns a dispose function.",
       ],
       [
         "onCleanup(fn)",
@@ -34,7 +34,7 @@ const sections: Array<{ title: string; rows: Rows }> = [
       ["createRoot(fn)", "Creates a top-level owner you can dispose by hand."],
       [
         "createContext / provide / useContext",
-        "Share a value with everything created inside provide().",
+        "Share a value with everything created inside provide() or <Context.Provider>.",
       ],
     ],
   },

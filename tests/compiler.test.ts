@@ -215,3 +215,11 @@ test("Show and For wrap a property read in when and each", () => {
 test("a component's own props are still not wrapped", () => {
   expect(none("const a = <Counter start={state.count} />;")).toBeNull();
 });
+
+test("Provider children are lazy, so the context is ready when they are created", () => {
+  expect(
+    run("const a = <Theme.Provider value={x}><Page /></Theme.Provider>;"),
+  ).toBe(
+    "const a = <Theme.Provider value={x}>{() => (<Page />)}</Theme.Provider>;",
+  );
+});

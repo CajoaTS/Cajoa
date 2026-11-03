@@ -76,6 +76,14 @@ function Counter() {
 render(Counter, document.getElementById("app")!);
 ```
 
+## Requirements
+
+Node.js 20 or newer, Vite 8 for the plugin, TypeScript 5 or newer (if you use TypeScript), and a modern browser (the code is built for ES2022).
+
+## Stability
+
+From 1.0, Cajoa follows semantic versioning. The API in the docs is stable, except the parts marked _experimental_ (the `Renderer` interface, `ServerContext` and the hydration markers). See [Stability and versioning](https://cajoats.github.io/Cajoa/docs/stability/).
+
 ## Reactive JSX
 
 With the Vite plugin, write plain JSX. Calls to signals are reactive wherever they appear in a DOM element, and `Show` children are created lazily:
@@ -358,10 +366,9 @@ const page = await renderToStringAsync(() => <App />, {
 - On the server, `isServer()` is `true`. `onMount` does not run (so `window` is safe there), `ref` is not called, and event handlers are left out.
 - `<Router>` uses the `url` of the request, and every request has its own router state, so parallel requests are safe. Put components that use `useLocation`, `NavLink` and similar **inside** `<Router>`.
 - `<Navigate>` calls `onRedirect` instead of rendering.
-- The output has markers for hydration. Use `hydratable: false` for plain static HTML.
+- Set `hydratable: true` to write hydration markers. This is experimental: there is no `hydrate()` yet, and the markers can change.
 - `renderToStringAsync` has a `timeout` (10 seconds by default) and throws when it is reached.
 - There is no hydration yet: in the browser, `render()` replaces the content of the container. `hydrate()` is planned.
-
 
 ### Page title and meta tags
 
@@ -378,7 +385,9 @@ import { Title, Meta } from "cajoa";
 ```tsx
 const head = {};
 const html = await renderToStringAsync(() => <App />, { url: req.url, head });
-const page = template.replace("<!--head-->", headToString(head)).replace("<!--app-->", html);
+const page = template
+  .replace("<!--head-->", headToString(head))
+  .replace("<!--app-->", html);
 ```
 
 ## TypeScript
@@ -435,14 +444,14 @@ The Vite plugin turns on dev mode on the dev server only (it sets `globalThis.__
 
 ### Reactivity
 
-| Function                 | What it does                                                                                                                       |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `createSignal(value)`    | Returns `[get, set]`. Reading `get()` inside an effect subscribes to it. `set` accepts a value or an updater function.             |
-| `createEffect(fn)`       | Runs `fn` now and again whenever a signal it read changes.                                                                         |
-| `createMemo(fn)`         | Cached computed value. It is computed when it is read, and it only notifies when the result changes.                               |
-| `batch(fn)`              | Groups several `set` calls into one update.                                                                                        |
-| `untrack(fn)`            | Runs `fn` without subscribing to signals.                                                                                          |
-| `createSelector(source)` | Returns `isSelected(key)`. Only the old and the new key wake up when `source` changes, so picking a row in a big list stays cheap. |
+| Function                                  | What it does                                                                                                                       |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `createSignal(value, { equals?, name? })` | Returns `[get, set]`. Reading `get()` inside an effect subscribes to it. `set` accepts a value or an updater function.             |
+| `createEffect(fn)`                        | Runs `fn` now and again whenever a signal it read changes.                                                                         |
+| `createMemo(fn)`                          | Cached computed value. It is computed when it is read, and it only notifies when the result changes.                               |
+| `batch(fn)`                               | Groups several `set` calls into one update.                                                                                        |
+| `untrack(fn)`                             | Runs `fn` without subscribing to signals.                                                                                          |
+| `createSelector(source)`                  | Returns `isSelected(key)`. Only the old and the new key wake up when `source` changes, so picking a row in a big list stays cheap. |
 
 ### Components
 
@@ -552,10 +561,11 @@ The Vite plugin turns on dev mode on the dev server only (it sets `globalThis.__
 
 ## Known limitations
 
-- `<Show>` and `<Router>` return a function, so they must sit inside an element, not be the root returned by `render`.
 - No hydration yet: in the browser, `render()` replaces the content of the container, even if it was rendered on the server.
 - Single-page apps need a server fallback to `index.html` for unknown paths.
 - `<select value>` works only when the `<option>` elements are direct children of the `<select>`.
+- There is no `innerHTML` prop. To insert raw HTML, set it yourself in a `ref`, and only from content you trust.
+- The router reads its routes once, so a route list that changes later is not supported.
 - Types in the core use a loose `HostNode` type for now.
 - Inside `<svg>`, the tags `<a>`, `<title>`, `<style>` and `<script>` are created as HTML elements (they share their names with HTML tags).
 - The compiler works on `.tsx` and `.jsx` files in Vite projects. `Show` and `For` are recognised only when imported from `cajoa` or `@cajoa/core`.

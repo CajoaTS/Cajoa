@@ -1,6 +1,7 @@
 import { quietly } from "../dev";
 import { ServerContext } from "../ssr";
-import { createContext, useContext } from "./signal";
+import { createContext } from "./context";
+import { useContext } from "./signal";
 
 export interface SuspenseState {
   add(): () => void;

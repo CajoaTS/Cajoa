@@ -1,4 +1,4 @@
-import { Callout, Code } from "../ui";
+import { Code } from "../ui";
 
 export function DataAndErrors() {
   return (
@@ -94,10 +94,6 @@ const [user, { refetch, mutate }] = createResource(userId, (id) => fetchUser(id)
           <code>catchError(fn, handler)</code> is the low-level building block.
         </li>
       </ul>
-      <Callout>
-        <code>{"<Suspense>"}</code> and <code>{"<ErrorBoundary>"}</code> must
-        sit inside an element, not at the root of <code>render</code>.
-      </Callout>
     </article>
   );
 }

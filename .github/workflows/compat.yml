@@ -1,0 +1,28 @@
+name: Compat
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # every Monday
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  newest-vite:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Install the newest Vite
+        run: |
+          npm install --no-save --legacy-peer-deps vite@latest
+          npm install --no-save --legacy-peer-deps vite@latest -w cajoa-website
+          npx vite --version
+      - run: npm run build
+      - run: npx vitest run
+      - run: npm run docs:build

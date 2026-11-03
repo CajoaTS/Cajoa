@@ -221,13 +221,3 @@ test("catchError reports synchronous and later errors", () => {
   expect(errors).toEqual(["now", "later"]);
 });
 
-test("render() explains how to fix a component that returns a function", () => {
-  const root = document.createElement("div");
-
-  expect(() =>
-    render(
-      () => ErrorBoundary({ fallback: "x", children: () => "y" }) as never,
-      root,
-    ),
-  ).toThrow(/Wrap it in an element/);
-});

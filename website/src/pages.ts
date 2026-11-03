@@ -8,6 +8,7 @@ import { RouterPage } from "./content/router";
 import { Ssr } from "./content/ssr";
 import { Stores } from "./content/stores";
 import { TypeScriptPage } from "./content/typescript";
+import { Stability } from "./content/stability";
 
 export interface Page {
   slug: string;
@@ -109,6 +110,16 @@ export const pages: Page[] = [
     description: "Every function and component in one place.",
     keywords: "reference list functions components",
     component: Api,
+  },
+  {
+    slug: "stability",
+    group: "Reference",
+    title: "Stability and versioning",
+    description:
+      "What the version numbers promise, what is experimental, and what is supported.",
+    keywords:
+      "semver versioning breaking changes experimental node vite typescript support security deprecation",
+    component: Stability,
   },
 ];
 

@@ -1,4 +1,4 @@
-import { createContext } from "./reactivity/signal";
+import { createContext } from "./reactivity/context";
 
 export interface HeadMeta {
   name?: string;

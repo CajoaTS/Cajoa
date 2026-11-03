@@ -35,8 +35,9 @@ const page = await renderToStringAsync(() => <App />, {
           rendering.
         </li>
         <li>
-          The output has markers for hydration. Use{" "}
-          <code>hydratable: false</code> for plain static HTML.
+          Set <code>hydratable: true</code> to write hydration markers. This is
+          experimental: there is no <code>hydrate()</code> yet, and the markers
+          can change.
         </li>
         <li>
           <code>renderToStringAsync</code> has a <code>timeout</code> (10
