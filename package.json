@@ -45,7 +45,7 @@
     "@arethetypeswrong/cli": "^0.18.5",
     "@changesets/cli": "^3.0.3",
     "@playwright/test": "^1.64.1",
-    "@types/node": "^26.6.5",
+    "@types/node": "^26.6.6",
     "@types/react": "^19.3.0",
     "@typescript/typescript6": "^6.0.2",
     "esbuild": "^0.28.2",
@@ -53,7 +53,7 @@
     "publint": "^0.3.25",
     "tsup": "^9.0.0",
     "typescript": "^5.9.3",
-    "vite": "^8.3.4",
+    "vite": "^8.3.5",
     "vitest": "^5.0.5"
   }
 }

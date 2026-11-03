@@ -82,7 +82,7 @@
   ],
   "sideEffects": true,
   "dependencies": {
-    "@babel/parser": "^8.0.7",
+    "@babel/parser": "^8.0.10",
     "@cajoa/core": "^0.20.0",
     "@cajoa/dom": "^0.20.0",
     "@cajoa/server": "^0.20.0",
