@@ -12,7 +12,9 @@ No virtual DOM, no hooks rules, no re-rendering components.
 
 **Docs:** https://cajoats.github.io/Cajoa/
 
-> ⚠️ **Early stage.** The API may still change before 1.0.
+[![npm](https://img.shields.io/npm/v/cajoa)](https://www.npmjs.com/package/cajoa)
+[![CI](https://github.com/CajoaTS/Cajoa/actions/workflows/ci.yml/badge.svg)](https://github.com/CajoaTS/Cajoa/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue)](./LICENSE)
 
 ## Why Cajoa?
 
@@ -600,8 +602,11 @@ The Vite plugin turns on dev mode on the dev server only (it sets `globalThis.__
 
 **(next)**
 
+**Next**
+
+- [ ] Developer tools: see which signals and effects run on each update
+- [ ] Testing utilities
 - [ ] Hydration
-- [ ] 1.0 (stable API)
 
 ## Development
 
