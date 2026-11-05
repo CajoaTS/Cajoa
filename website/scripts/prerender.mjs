@@ -1,4 +1,3 @@
-
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -34,8 +33,12 @@ const escapeHtml = (value) =>
 
 // The replacers are functions on purpose:
 // the HTML may contain "$" characters.
+
 function page({ title, description }, html) {
-  let out = template.replace("<!--app-->", () => html);
+  let out = template.replace(
+    /(<meta property="og:image" content=")[^"]*(")/,
+    (_, a, b) => a + site + base + "social-preview.png" + b,
+  );
 
   out = out.replace(
     /<title>[^<]*<\/title>/,
@@ -59,7 +62,7 @@ function page({ title, description }, html) {
     );
   }
 
-  return out;
+  return out.replace("<!--app-html-->", html);
 }
 
 // Generate an HTML file for every route.
@@ -105,9 +108,7 @@ writeFileSync(
 const urls = routes
   .map((route) => {
     const path =
-      route.path === "/"
-        ? ""
-        : route.path.replace(/^\/+|\/+$/g, "") + "/";
+      route.path === "/" ? "" : route.path.replace(/^\/+|\/+$/g, "") + "/";
 
     return `  <url><loc>${escapeHtml(site + base + path)}</loc></url>`;
   })

@@ -8,5 +8,8 @@
   "ignore": [],
   "fixed": [["cajoa", "@cajoa/core", "@cajoa/dom", "@cajoa/server"]],
   "linked": [],
-  "updateInternalDependencies": "patch"
+  "updateInternalDependencies": "patch",
+  "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
+    "onlyUpdatePeerDependentsWhenOutOfRange": true
+  }
 }
