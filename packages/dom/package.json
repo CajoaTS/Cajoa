@@ -1,6 +1,6 @@
 {
   "name": "@cajoa/dom",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Cajoa for the browser: DOM renderer and router.",
   "type": "module",
   "main": "./dist/index.cjs",
