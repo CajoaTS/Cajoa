@@ -57,6 +57,8 @@ interface Context {
   svg: boolean;
   selectValue: string | undefined;
   raw: boolean; 
+  /** No comments allowed inside (script, style, textarea, title): hydrate() clears these elements instead. */
+  plain: boolean;
 }
 
 const escapeText = (s: string) =>
@@ -87,6 +89,7 @@ export function serialize(root: SNode, options: SerializeOptions): string {
     svg: false,
     selectValue: undefined,
     raw: false,
+    plain: false,
   });
   return out.join("");
 }
@@ -97,18 +100,17 @@ function writeChildren(
   options: SerializeOptions,
   ctx: Context,
 ) {
-  let afterText = false;
   for (let child = parent.first; child; child = child.next) {
     if (child.type === "text") {
       if (child.text === "") continue;
-      if (afterText && options.hydratable) out.push("<!--|-->");
+      // A comment before each text node says which node it is, and keeps neighbouring texts apart
+      if (options.hydratable && !ctx.plain) out.push("<!--t", String(child.id), "-->");
       out.push(ctx.raw ? escapeRaw(child.text) : escapeText(child.text));
-      afterText = true;
       continue;
     }
-    afterText = false;
     if (child.type === "comment") {
-      if (options.hydratable) out.push("<!--$-->");
+      if (options.hydratable && !ctx.plain)
+        out.push("<!--m", String(child.id), "-->");
     } else if (child.type === "element") {
       writeElement(child, out, options, ctx);
     }
@@ -140,6 +142,7 @@ function writeElement(
       else out.push(" ", attr, '="', escapeAttr(String(value)), '"');
     }
   }
+  if (options.hydratable && node.id) out.push(' data-cj="', String(node.id), '"');
   if (inSelect) {
     const own = props?.get("value");
     const optionValue = own !== undefined ? String(own) : textOf(node).trim();
@@ -165,6 +168,11 @@ function writeElement(
       svg: svg && tag !== "foreignObject",
       selectValue,
       raw: tag === "script" || tag === "style",
+      plain:
+        tag === "script" ||
+        tag === "style" ||
+        tag === "textarea" ||
+        tag === "title",
     });
   }
   out.push("</", tag, ">");

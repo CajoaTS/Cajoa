@@ -35,7 +35,7 @@ assert.equal(
 );
 assert.equal(
   renderToString(() => h("p", null, "Hi ", () => name()), { hydratable: true }),
-  "<p>Hi <!--$-->Ada<!--$--></p>",
+  '<p data-cj="1"><!--t2-->Hi <!--m3--><!--t5-->Ada<!--m4--></p>',
 );
 
 const slow = () => {

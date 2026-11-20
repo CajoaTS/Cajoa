@@ -35,20 +35,71 @@ const page = await renderToStringAsync(() => <App />, {
           rendering.
         </li>
         <li>
-          Set <code>hydratable: true</code> to write hydration markers. This is
-          experimental: there is no <code>hydrate()</code> yet, and the markers
-          can change.
+          To make the HTML interactive in the browser, set{" "}
+          <code>hydratable: true</code> and call <code>hydrate()</code> (see
+          below).
         </li>
         <li>
           <code>renderToStringAsync</code> has a <code>timeout</code> (10
           seconds by default) and throws when it is reached.
         </li>
       </ul>
-      <Callout title="No hydration yet">
-        In the browser, <code>render()</code> replaces the content of the
-        container, even if it was rendered on the server. The page looks the
-        same, but state in the DOM, such as focus, is not kept.{" "}
-        <code>hydrate()</code> is planned.
+      <h2>Hydration</h2>
+      <p>
+        <code>render()</code> throws away what is in the container and builds
+        the page again. <code>hydrate()</code> keeps the HTML that the server
+        wrote and only attaches the app to it: events, signals and effects. The
+        elements stay the same, so focus, scroll position and anything the user
+        typed are not lost.
+      </p>
+      <Code
+        code={`// On the server
+const html = renderToString(() => <App />, { url: req.url, hydratable: true });
+
+// In the browser (the HTML is inside <div id="app">)
+import { hydrate } from "cajoa";
+
+hydrate(() => <App />, document.getElementById("app")!);`}
+      />
+      <ul>
+        <li>
+          <code>hydrate(component, container)</code> has the same signature as{" "}
+          <code>render()</code> and returns a <code>dispose</code> function.
+        </li>
+        <li>
+          The server must use <code>hydratable: true</code>. This adds a{" "}
+          <code>data-cj</code> attribute to elements and a few comments, which{" "}
+          <code>hydrate()</code> removes again.
+        </li>
+        <li>
+          <strong>The server and the browser must render the same thing</strong>
+          : the same app, the same URL and the same data. Something that only
+          the browser knows (the time, <code>window.innerWidth</code>, a value
+          from <code>localStorage</code>) belongs in <code>onMount</code>,
+          which does not run on the server.
+        </li>
+        <li>
+          If they differ, <code>hydrate()</code> still ends with the page that
+          the browser app describes. Text that differs is updated, elements that
+          the server wrote and the app does not make are removed, and an
+          element with another tag is replaced. In dev mode it warns about each
+          difference.
+        </li>
+        <li>
+          If the container has no hydration markers (or is empty),{" "}
+          <code>hydrate()</code> does the same as <code>render()</code>.
+        </li>
+        <li>
+          Browsers add a <code>{"<tbody>"}</code> when they read{" "}
+          <code>{"<table><tr>"}</code>. Write the <code>{"<tbody>"}</code>{" "}
+          yourself, so the server HTML and the app agree.
+        </li>
+      </ul>
+      <Callout title="Resources are not sent to the browser yet">
+        With <code>renderToStringAsync</code>, the browser does not get the
+        data that the server loaded. It starts loading again, so content that
+        depends on a resource shows its loading state and is filled in again.
+        Hydration is experimental until this is solved.
       </Callout>
       <h2>Page title and meta tags</h2>
       <p>

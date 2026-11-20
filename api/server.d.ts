@@ -4,8 +4,8 @@ type Component = Parameters<typeof render>[0];
 interface RenderOptions {
     url?: string;
     /**
-     * Write comment markers that a future hydrate() will use. Experimental: there is no hydrate() yet,
-     * and the marker format can change. Default: false.
+     * Write the markers that hydrate() needs to reuse this HTML in the browser. Set it to true when
+     * the page will call hydrate(). The marker format is experimental and can change. Default: false.
      */
     hydratable?: boolean;
     head?: HeadData;
