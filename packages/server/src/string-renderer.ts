@@ -1,4 +1,4 @@
-import type { Renderer } from "@cajoa/core";
+import { ServerContext, useContext, type Renderer } from "@cajoa/core";
 
 export type SNodeType = "element" | "text" | "comment" | "fragment";
 
@@ -9,6 +9,8 @@ export class SNode {
   first: SNode | null = null;
   last: SNode | null = null;
   props: Map<string, unknown> | null = null;
+  /** Creation number within one request (0 = none). hydrate() uses it to find this node in the browser. */
+  id = 0;
 
   constructor(
     readonly type: SNodeType,
@@ -107,8 +109,24 @@ function setProp(el: SNode, key: string, value: unknown) {
 
 // ---------- Ang renderer ----------
 
-const make = (type: SNodeType, tag = "", text = "") =>
-  new SNode(type, tag, text);
+// Every node gets a number in creation order, per request. The browser creates its nodes in the same
+// order, so hydrate() can find the matching server node by number. A WeakMap keeps requests apart
+// even when several async renders run at the same time.
+const counters = new WeakMap<object, number>();
+
+function nextId(): number {
+  const request = useContext(ServerContext);
+  if (!request) return 0;
+  const id = (counters.get(request) ?? 0) + 1;
+  counters.set(request, id);
+  return id;
+}
+
+const make = (type: SNodeType, tag = "", text = "") => {
+  const node = new SNode(type, tag, text);
+  if (type !== "fragment") node.id = nextId();
+  return node;
+};
 
 export const stringRenderer: Renderer<SNode> = {
   isServer: true,

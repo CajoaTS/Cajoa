@@ -94,7 +94,9 @@ test("the output has markers for hydration only when you ask for them", () => {
   const [name] = createSignal("Ada");
   expect(
     renderToString(() => <p>Hello {name()}</p>, { hydratable: true }),
-  ).toBe("<p>Hello <!--$-->Ada<!--$--></p>");
+  ).toBe(
+    '<p data-cj="1"><!--t2-->Hello <!--m3--><!--t5-->Ada<!--m4--></p>',
+  );
   expect(
     renderToString(
       () => (
@@ -105,7 +107,7 @@ test("the output has markers for hydration only when you ask for them", () => {
       ),
       { hydratable: true },
     ),
-  ).toBe("<p>a<!--|-->b</p>");
+  ).toBe('<p data-cj="1"><!--t2-->a<!--t3-->b</p>');
   expect(renderToString(() => <p>Hello {name()}</p>)).toBe("<p>Hello Ada</p>");
 });
 

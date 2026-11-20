@@ -1,6 +1,16 @@
-import { Renderer } from '@cajoa/core';
+import { Renderer, HostNode } from '@cajoa/core';
 
 declare const domRenderer: Renderer<Node>;
+
+/**
+ * Makes the HTML that the server wrote in `container` interactive, instead of throwing it away and
+ * building it again like render() does. Server and browser must render the same app with the same data.
+ * The server needs `hydratable: true`. Returns a function that stops the app.
+ *
+ * Hydrating an app whose HTML came from `renderToStringAsync` with resources: the browser does not
+ * have the data yet, so it starts from the loading state and replaces the server content.
+ */
+declare function hydrate(component: () => unknown, container: HostNode): () => void;
 
 interface RouterLocation {
     pathname: string;
@@ -801,5 +811,5 @@ declare function Meta(props: {
     content: unknown;
 }): null;
 
-export { JSX, Link, Meta, NavLink, Navigate, Outlet, Route, Router, Title, domRenderer, navigate, useLocation, useParams, usePath, useSearchParams };
+export { JSX, Link, Meta, NavLink, Navigate, Outlet, Route, Router, Title, domRenderer, hydrate, navigate, useLocation, useParams, usePath, useSearchParams };
 export type { CSSProperties, NavigateOptions, RouteDef, RouterLocation, SearchParamValue, TargetedEvent };

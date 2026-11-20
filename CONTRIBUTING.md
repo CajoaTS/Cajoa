@@ -31,8 +31,9 @@ If a change makes a bundle bigger than its budget, `verify` fails. If the growth
 
 1. Branch from `main` and open a pull request. Do not push to `main` directly.
 2. Add tests for your change.
-3. Run `npm run changeset` and describe the change. Use `minor` while we are on 0.x,
-   even for breaking changes. `cajoa`, `@cajoa/core` and `@cajoa/dom` always share one version.
+3. Run `npm run changeset` and describe the change. Use `minor` for a new feature and `patch` for a fix.
+   A breaking change needs `major`, except in the parts the Stability page calls experimental.
+   `cajoa`, `@cajoa/core`, `@cajoa/dom` and `@cajoa/server` always share one version.
 4. If the change affects what new projects get, add a changeset for `create-cajoa` too.
 5. CI runs `npm run verify` on Node 20, 22 and 24.
 
@@ -44,12 +45,13 @@ Releases are automated. Do not run `npm publish` by hand.
 2. The Release workflow opens a "chore: version packages" PR. It bumps versions,
    updates changelogs, and syncs the README and the starter template.
 3. If CI is waiting for approval on that PR, click "Approve and run".
-4. Merge it. The workflow publishes to npm with provenance.
+4. Merge it. The workflow publishes to npm with provenance, and creates the tags and GitHub releases.
 
 ## Layout
 
 - `packages/core` (`@cajoa/core`): renderer-agnostic core
-- `packages/dom` (`@cajoa/dom`): DOM renderer and router
+- `packages/dom` (`@cajoa/dom`): DOM renderer, router and `hydrate()`
+- `packages/server` (`@cajoa/server`): server-side rendering
 - `packages/cajoa` (`cajoa`): umbrella package most people install
 - `create-cajoa`: starter (`npm create cajoa@latest`)
 - The root `README.md` and `LICENSE` are copied into packages by `npm run sync`.

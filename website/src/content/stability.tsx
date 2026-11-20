@@ -50,8 +50,8 @@ export function Stability() {
           <code>ServerContext</code> and <code>ServerRequest</code>
         </li>
         <li>
-          The <code>hydratable</code> option of the server renderer, and the
-          markers it writes. There is no <code>hydrate()</code> yet.
+          Hydration: <code>hydrate()</code>, the <code>hydratable</code> option
+          of the server renderer, and the markers it writes.
         </li>
         <li>Debug hooks, when they arrive</li>
       </ul>
