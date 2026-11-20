@@ -1,12 +1,5 @@
 import { test, expect } from "vitest";
-import {
-  createSignal,
-  For,
-  hydrate,
-  render,
-  Show,
-  type JSX,
-} from "cajoa";
+import { createSignal, For, hydrate, render, Show, type JSX } from "cajoa";
 import { renderToString } from "@cajoa/server";
 
 function makeApp() {
@@ -34,6 +27,18 @@ function makeApp() {
 }
 
 const clean = (html: string) => html.replace(/<!--.*?-->/g, "");
+
+// The server writes value, checked and selected as attributes, and the browser sets them as
+// properties. Compare the markup without them, and check them as properties.
+function snapshot(container: Element) {
+  const copy = container.cloneNode(true) as Element;
+  copy.querySelectorAll("*").forEach((element) => {
+    for (const name of ["value", "checked", "selected"]) {
+      element.removeAttribute(name);
+    }
+  });
+  return clean(copy.innerHTML);
+}
 
 function serverHtml(App: () => JSX.Element | unknown) {
   return renderToString(App as () => unknown, { hydratable: true });
@@ -82,7 +87,9 @@ test("hydrate() gives the same result as render()", () => {
   const rendered = document.createElement("div");
   render(makeApp().App, rendered);
 
-  expect(clean(hydrated.innerHTML)).toBe(clean(rendered.innerHTML));
+  expect(snapshot(hydrated)).toBe(snapshot(rendered));
+  expect(hydrated.querySelector<HTMLInputElement>("#input")!.value).toBe("x");
+  expect(rendered.querySelector<HTMLInputElement>("#input")!.value).toBe("x");
 });
 
 test("hydrate() removes server nodes that the browser does not make", () => {
