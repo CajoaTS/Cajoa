@@ -47,11 +47,13 @@ export function Stability() {
           building other renderers)
         </li>
         <li>
-          <code>ServerContext</code> and <code>ServerRequest</code>
+          <code>ServerContext</code> and <code>ServerRequest</code>, including
+          its <code>transfer</code> field, and <code>setResourceTransfer</code>
         </li>
         <li>
           Hydration: <code>hydrate()</code>, the <code>hydratable</code> option
-          of the server renderer, and the markers it writes.
+          of the server renderer, the markers it writes, and the data script
+          that carries resource data.
         </li>
         <li>Debug hooks, when they arrive</li>
       </ul>
