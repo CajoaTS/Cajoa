@@ -17,6 +17,6 @@ export * from "./jsx-runtime";
 export { setRenderer, getRenderer } from "./renderer";
 export type { Renderer, HostNode } from "./renderer/types";
 export { currentRenderer, isServer } from "./renderer";
-export { ServerContext } from "./ssr";
-export type { ServerRequest } from "./ssr";
+export { ServerContext, setResourceTransfer } from "./ssr";
+export type { ServerRequest, ResourceTransfer, ResourceSlot } from "./ssr";
 export type { HeadData, HeadMeta } from "./ssr";

@@ -85,7 +85,7 @@ Node.js 20 or newer, Vite 8 for the plugin, TypeScript 5 or newer (if you use Ty
 
 ## Stability
 
-From 1.0, Cajoa follows semantic versioning. The API in the docs is stable, except the parts marked _experimental_ (the `Renderer` interface, `ServerContext`, and hydration: `hydrate()`, the `hydratable` option and the markers it writes). See [Stability and versioning](https://cajoats.github.io/Cajoa/docs/stability/).
+From 1.0, Cajoa follows semantic versioning. The API in the docs is stable, except the parts marked _experimental_ (the `Renderer` interface, `ServerContext` with its `transfer` field, and hydration: `hydrate()`, the `hydratable` option, the markers it writes and the data script). See [Stability and versioning](https://cajoats.github.io/Cajoa/docs/stability/).
 
 ## Reactive JSX
 
@@ -348,6 +348,7 @@ const page = await renderToStringAsync(() => <App />, {
 - `<Navigate>` calls `onRedirect` instead of rendering.
 - `renderToStringAsync` has a `timeout` (10 seconds by default) and throws when it is reached.
 - `renderToString` does not wait for resources: they are still loading in its output. Use `renderToStringAsync` when the page needs its data.
+- With `hydratable: true`, `renderToStringAsync` renders the app more than once: first to load the data, then again with that data, until nothing new is loaded. Each fetcher still runs once, but your components run again on the server, so keep them free of side effects.
 - To make the HTML interactive in the browser, set `hydratable: true` and call `hydrate()` (see below).
 
 ### Hydration
@@ -369,7 +370,9 @@ hydrate(() => <App />, document.getElementById("app")!);
 - **The server and the browser must render the same thing**: the same app, the same URL and the same data. If you show something that only the browser knows (the time, `window.innerWidth`, a value from `localStorage`), set it in `onMount`, which does not run on the server.
 - If they differ, `hydrate()` still ends with the page the browser app describes. Text that differs is updated, elements that the server wrote and the app does not make are removed, and an element with another tag is replaced. In dev mode it warns about each difference.
 - If the container has no hydration markers (or is empty), `hydrate()` does the same as `render()`.
-- Resources do not travel from the server to the browser yet. With `renderToStringAsync`, the browser starts loading again, so content that depends on a resource shows its loading state and is filled in again.
+- **Resources travel with the HTML.** With `renderToStringAsync`, the data that each resource loaded is written in a `<script type="application/json">` at the end of the HTML. `hydrate()` removes it, and the resources in the browser start with their value, so they do not load again and `Suspense` shows its content at once. After that, `refetch()` and a changing source work as usual.
+- **Everything a resource returns is sent to the browser**, not only what you show. If a fetcher returns more than the page needs (an email address, a token), pick the fields inside the fetcher. Only what JSON can write is sent: a `Date` arrives as a string, and a `Map`, a class instance or `undefined` is not sent, so that resource loads in the browser.
+- A resource gets the server's data only when it has the same source (the value its first function returns) as on the server. If it does not, or if the fetch failed on the server, it loads in the browser.
 - Clicks before `hydrate()` runs are not remembered. Keep the script small, or load it early.
 - Browsers add a `<tbody>` when they read `<table><tr>`. Write the `<tbody>` yourself, so the server HTML and the app agree.
 - Elements inside nested `Show`, `Suspense` or fragment blocks are the same elements as before, but they can be moved inside the page while hydrating. An `<iframe>` or `<video>` in there may reload.
@@ -568,7 +571,7 @@ The Vite plugin turns on dev mode on the dev server only (it sets `globalThis.__
 
 ## Known limitations
 
-- Hydration is experimental. It needs the server and the browser to render the same thing, and resources are not sent from the server to the browser yet.
+- Hydration is experimental. It needs the server and the browser to render the same thing, and a resource that failed on the server loads again in the browser.
 - Single-page apps need a server fallback to `index.html` for unknown paths.
 - `<select value>` works only when the `<option>` elements are direct children of the `<select>`.
 - There is no `innerHTML` prop. To insert raw HTML, set it yourself in a `ref`, and only from content you trust.
@@ -604,11 +607,11 @@ The Vite plugin turns on dev mode on the dev server only (it sets `globalThis.__
 - [x] Typed JSX (HTML attributes and events)
 - [x] Docs site built with Cajoa
 - [x] Page title and meta tags (`<Title>`, `<Meta>`)
-- [x] Hydration (`hydrate()`)
+- [x] Hydration (`hydrate()`), with resource data sent from the server to the browser
 
 **Next**
 
-- [ ] Send resource data from the server to the browser, so hydration does not load it again
+- [ ] Keep elements in place while hydrating nested `Show`, `Suspense` and fragments (they are moved now)
 - [ ] Developer tools: see which signals and effects run on each update
 - [ ] Testing utilities
 

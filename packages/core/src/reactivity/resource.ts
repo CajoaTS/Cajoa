@@ -1,9 +1,12 @@
+import { quietly } from "../dev";
+import { getResourceTransfer, ServerContext } from "../ssr";
 import {
   batch,
   createEffect,
   createSignal,
   onCleanup,
   untrack,
+  useContext,
 } from "./signal";
 import { trackPending } from "./suspense";
 
@@ -19,6 +22,15 @@ export interface ResourceActions<T> {
 }
 
 type ResourceTuple<T> = [Resource<T>, ResourceActions<T>];
+
+// What the resource loads, as text. Only values that JSON can write are matched.
+function keyOf(source: unknown): string | undefined {
+  try {
+    return JSON.stringify(source);
+  } catch {
+    return undefined;
+  }
+}
 
 function isPromiseLike(value: unknown): value is PromiseLike<unknown> {
   return (
@@ -44,6 +56,13 @@ export function createResource(a: unknown, b?: unknown): any {
   const [version, setVersion] = createSignal(0);
   let run = 0;
 
+  // On the server (when the page will be hydrated) and in hydrate(), the data that was loaded before
+  const transfer =
+    quietly(() => useContext(ServerContext))?.transfer ?? getResourceTransfer();
+  const slot = transfer?.open();
+  const hint = transfer ? String(fetcher) : "";
+  let key: string | undefined;
+  let tried = false;
 
   const track = trackPending();
   let release: (() => void) | undefined;
@@ -53,8 +72,13 @@ export function createResource(a: unknown, b?: unknown): any {
     id: number,
     outcome: { value: unknown } | { error: unknown },
   ) => {
-    if (id !== run) return; 
+    if (id !== run) return;
     settled = true;
+    if (slot) {
+      if (key === undefined) slot.clear?.();
+      else if ("error" in outcome) slot.fail?.(key, hint, outcome.error);
+      else slot.set?.(key, hint, outcome.value, true);
+    }
     batch(() => {
       setLoading(false);
       if ("error" in outcome) {
@@ -70,12 +94,12 @@ export function createResource(a: unknown, b?: unknown): any {
 
   createEffect(() => {
     const s = source();
-    version(); 
+    version();
 
     run++;
     const id = run;
     onCleanup(() => {
-      run++; 
+      run++;
       release?.();
       release = undefined;
     });
@@ -86,7 +110,32 @@ export function createResource(a: unknown, b?: unknown): any {
         setFailure(null);
         setData(() => undefined);
       });
+      slot?.clear?.();
       return;
+    }
+
+    if (slot) {
+      key = keyOf(s);
+      if (!tried) {
+        // Only the first run can start from data that was loaded before
+        tried = true;
+        const found = key === undefined ? undefined : slot.take(key, hint);
+        if (found) {
+          settled = true;
+          batch(() => {
+            setLoading(false);
+            if ("error" in found) {
+              setFailure({ error: found.error });
+              slot.fail?.(key!, hint, found.error);
+            } else {
+              setFailure(null);
+              setData(() => found.value);
+              slot.set?.(key!, hint, found.value, false);
+            }
+          });
+          return;
+        }
+      }
     }
 
     if (!settled && track && !release) release = track();

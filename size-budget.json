@@ -1,7 +1,7 @@
 {
   "@cajoa/core: signals": 1100,
-  "@cajoa/core: everything": 5950,
+  "@cajoa/core: everything": 6200,
   "cajoa: counter app": 3700,
   "cajoa: with router": 5250,
-  "cajoa: everything": 10800
+  "cajoa: everything": 11200
 }

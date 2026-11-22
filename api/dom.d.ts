@@ -7,8 +7,8 @@ declare const domRenderer: Renderer<Node>;
  * building it again like render() does. Server and browser must render the same app with the same data.
  * The server needs `hydratable: true`. Returns a function that stops the app.
  *
- * Hydrating an app whose HTML came from `renderToStringAsync` with resources: the browser does not
- * have the data yet, so it starts from the loading state and replaces the server content.
+ * With `renderToStringAsync`, the data that the resources loaded comes with the HTML, so the resources
+ * in the browser start with their value and do not load again.
  */
 declare function hydrate(component: () => unknown, container: HostNode): () => void;
 

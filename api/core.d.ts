@@ -202,8 +202,41 @@ interface ServerRequest {
      * Returns the function to call when the work is done.
      */
     track(): () => void;
+    /**
+     * Experimental. Set when the page will be hydrated: createResource uses it to hand the data
+     * that it loaded to the browser, and to reuse data from an earlier pass.
+     */
+    transfer?: ResourceTransfer;
+}
+/**
+ * Experimental. How data that a resource loaded moves from the server to the browser. Only
+ * @cajoa/server and hydrate() use this, apps do not.
+ */
+interface ResourceTransfer {
+    /** Called once for each createResource, in the order that they are created. */
+    open(): ResourceSlot;
+}
+/** One createResource call, as seen by the server or by hydrate(). */
+interface ResourceSlot {
+    /**
+     * The data that was loaded for this resource before, if there is any. `key` says what the
+     * resource loads (its source), and `hint` identifies its fetcher.
+     */
+    take(key: string, hint: string): {
+        value: unknown;
+    } | {
+        error: unknown;
+    } | undefined;
+    /** The resource has this value now. `loaded` is true when it was fetched just now. */
+    set?(key: string, hint: string, value: unknown, loaded: boolean): void;
+    /** The resource failed with this error. */
+    fail?(key: string, hint: string, error: unknown): void;
+    /** The resource has nothing (its source is empty). */
+    clear?(): void;
 }
 declare const ServerContext: Context<ServerRequest | null>;
+/** Used by hydrate() while it runs, so resources start with the data that the server loaded. */
+declare function setResourceTransfer(transfer: ResourceTransfer | null): void;
 
-export { Dynamic, ErrorBoundary, For, Fragment, Match, Portal, ServerContext, Show, Suspense, Switch, batch, catchError, createContext, createEffect, createMemo, createResource, createRoot, createSelector, createSignal, createStore, currentRenderer, getRenderer, h, isServer, jsx, jsxDEV, jsxs, lazy, onCleanup, onMount, provide, render, setRenderer, untrack, unwrap, useContext };
-export type { Child, Context, EffectOptions, HeadData, HeadMeta, HostNode, MatchDef, Renderer, Resource, ResourceActions, ServerRequest, SetStoreFunction, SignalOptions };
+export { Dynamic, ErrorBoundary, For, Fragment, Match, Portal, ServerContext, Show, Suspense, Switch, batch, catchError, createContext, createEffect, createMemo, createResource, createRoot, createSelector, createSignal, createStore, currentRenderer, getRenderer, h, isServer, jsx, jsxDEV, jsxs, lazy, onCleanup, onMount, provide, render, setRenderer, setResourceTransfer, untrack, unwrap, useContext };
+export type { Child, Context, EffectOptions, HeadData, HeadMeta, HostNode, MatchDef, Renderer, Resource, ResourceActions, ResourceSlot, ResourceTransfer, ServerRequest, SetStoreFunction, SignalOptions };
