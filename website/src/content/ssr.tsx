@@ -49,8 +49,9 @@ const page = await renderToStringAsync(() => <App />, {
         <code>render()</code> throws away what is in the container and builds
         the page again. <code>hydrate()</code> keeps the HTML that the server
         wrote and only attaches the app to it: events, signals and effects. The
-        elements stay the same, so focus, scroll position and anything the user
-        typed are not lost.
+        elements stay the same, so focus, scroll position and text typed in a
+        field that the app does not control (a field without a{" "}
+        <code>value</code> or <code>checked</code> prop) are not lost.
       </p>
       <Code
         code={`// On the server
@@ -75,19 +76,35 @@ hydrate(() => <App />, document.getElementById("app")!);`}
           <strong>The server and the browser must render the same thing</strong>
           : the same app, the same URL and the same data. Something that only
           the browser knows (the time, <code>window.innerWidth</code>, a value
-          from <code>localStorage</code>) belongs in <code>onMount</code>, which
-          does not run on the server.
+          from <code>localStorage</code>) belongs in <code>onMount</code>,
+          which does not run on the server.
         </li>
         <li>
           If they differ, <code>hydrate()</code> still ends with the page that
           the browser app describes. Text that differs is updated, elements that
-          the server wrote and the app does not make are removed, and an element
-          with another tag is replaced. In dev mode it warns about each
+          the server wrote and the app does not make are removed, and an
+          element with another tag is replaced. In dev mode it warns about each
           difference.
         </li>
         <li>
           If the container has no hydration markers (or is empty),{" "}
           <code>hydrate()</code> does the same as <code>render()</code>.
+        </li>
+        <li>
+          Elements are reused, and <code>hydrate()</code> does not write an
+          attribute that the server HTML already has, so an{" "}
+          <code>{"<iframe>"}</code>, <code>{"<video>"}</code> or{" "}
+          <code>{"<img>"}</code> does not reload. Nested <code>Show</code>{" "}
+          blocks and lists stay in place too. Two cases are still moved once
+          while hydrating: elements inside a <code>{"<>...</>"}</code> fragment,
+          and content that <code>Suspense</code> gets from a fragment. They are
+          the same elements, but an <code>{"<iframe>"}</code> or{" "}
+          <code>{"<video>"}</code> there may reload.
+        </li>
+        <li>
+          A field with a <code>value</code> or <code>checked</code> prop is set
+          to what the app says, as always. Text that the user typed in it before{" "}
+          <code>hydrate()</code> ran is replaced.
         </li>
         <li>
           Browsers add a <code>{"<tbody>"}</code> when they read{" "}
@@ -100,8 +117,8 @@ hydrate(() => <App />, document.getElementById("app")!);`}
         With <code>renderToStringAsync</code>, the data that each resource
         loaded is written in a <code>{'<script type="application/json">'}</code>{" "}
         at the end of the HTML. <code>hydrate()</code> removes it, and the
-        resources in the browser start with their value. They do not load again,
-        and <code>Suspense</code> shows its content at once. After that,{" "}
+        resources in the browser start with their value. They do not load
+        again, and <code>Suspense</code> shows its content at once. After that,{" "}
         <code>refetch()</code> and a changing source work as usual.
       </p>
       <ul>
@@ -126,7 +143,8 @@ hydrate(() => <App />, document.getElementById("app")!);`}
       </ul>
       <Callout title="Everything a resource returns is sent to the browser">
         Not only what you show. If a fetcher returns more than the page needs,
-        such as an email address or a token, pick the fields inside the fetcher.
+        such as an email address or a token, pick the fields inside the
+        fetcher.
       </Callout>
       <h2>Page title and meta tags</h2>
       <p>

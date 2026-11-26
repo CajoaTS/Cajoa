@@ -6,17 +6,18 @@ import {
   type Renderer,
   type ResourceTransfer,
 } from "@cajoa/core";
-import { domRenderer } from "./dom-renderer";
+import { attributeFor, domRenderer } from "./dom-renderer";
 
-declare const console: { warn(...args: unknown[]): void } | undefined;
+declare const console:
+  | { warn(...args: unknown[]): void }
+  | undefined;
 
 const ID_ATTRIBUTE = "data-cj";
 // Elements whose children the server wrote without markers
 const TEXT_ONLY = new Set(["script", "style", "textarea", "title"]);
 
 function warn(message: string): void {
-  const dev = (globalThis as unknown as { __CAJOA_DEV__?: boolean })
-    .__CAJOA_DEV__;
+  const dev = (globalThis as unknown as { __CAJOA_DEV__?: boolean }).__CAJOA_DEV__;
   if (dev === true && typeof console !== "undefined") {
     console.warn(`[cajoa] ${message}`);
   }
@@ -35,6 +36,11 @@ interface Session {
   claimed: WeakSet<Node>;
   /** The last node placed in each claimed parent, so the next one goes after it. */
   last: WeakMap<Node, Node>;
+  /**
+   * Holders for the nodes of a nested block (a function that returns a function). When the markers
+   * of a block are already in the page, they stay there, and the holder only remembers them.
+   */
+  holders: WeakMap<Node, { start?: Node; end?: Node; seen: number }>;
   problems: number;
 }
 
@@ -48,6 +54,7 @@ function scan(root: Node): Session {
     texts: new Map(),
     claimed: new WeakSet(),
     last: new WeakMap(),
+    holders: new WeakMap(),
     problems: 0,
   };
 
@@ -62,14 +69,18 @@ function scan(root: Node): Session {
       const match = /^([mt])(\d+)$/.exec((node as Comment).data);
       if (!match) continue;
       const id = Number(match[2]);
-      if (id > 0)
-        (match[1] === "m" ? session.markers : session.texts).set(
-          id,
-          node as Comment,
-        );
+      if (id > 0) (match[1] === "m" ? session.markers : session.texts).set(id, node as Comment);
     }
   }
   return session;
+}
+
+/** Does the element from the server HTML already have this attribute, with this value? */
+function samePage(el: Element, key: string, value: unknown): boolean {
+  const name = attributeFor(el, key);
+  if (!name) return false;
+  if (value == null || value === false) return !el.hasAttribute(name);
+  return el.getAttribute(name) === (value === true ? "" : String(value));
 }
 
 function createHydrationRenderer(s: Session): Renderer<Node> {
@@ -146,12 +157,17 @@ function createHydrationRenderer(s: Session): Renderer<Node> {
       return element;
     },
 
+    setProp(el, key, value) {
+      // Writing an attribute again, even with the same value, can reload an <iframe> or <video>
+      if (s.active && s.claimed.has(el) && samePage(el as Element, key, value)) return;
+      dom.setProp(el, key, value);
+    },
+
     createText(value) {
       if (!s.active) return dom.createText(value);
       const pointer = s.texts.get(++s.next);
       const text = pointer?.nextSibling;
-      if (!pointer || !text || text.nodeType !== 3)
-        return dom.createText(value);
+      if (!pointer || !text || text.nodeType !== 3) return dom.createText(value);
 
       s.texts.delete(s.next);
       pointer.remove();
@@ -171,13 +187,62 @@ function createHydrationRenderer(s: Session): Renderer<Node> {
       return marker;
     },
 
+    createHolder() {
+      const holder = dom.createFragment();
+      if (s.active) s.holders.set(holder, { seen: 0 });
+      return holder;
+    },
+
+    unwrap(holder) {
+      const found = s.active ? s.holders.get(holder) : undefined;
+      const start = found?.start;
+      const end = found?.end;
+      if (!start || !end) return undefined;
+
+      // The nodes of the block are already in the page, from the first marker to the last
+      if (start.parentNode && start.parentNode === end.parentNode) {
+        const parts: Node[] = [];
+        for (let n: Node | null = start; n; n = n.nextSibling) {
+          parts.push(n);
+          if (n === end) return parts;
+        }
+      }
+
+      // Not what the server wrote. Put the markers in the holder, like a normal render does.
+      problem("a block in the server HTML is not where the browser expects it.");
+      found.start = found.end = undefined;
+      dom.insert(holder, start, null);
+      dom.insert(holder, end, null);
+      return undefined;
+    },
+
     insert(parent, node, anchor = null) {
+      const holder = s.active && anchor === null ? s.holders.get(parent) : undefined;
+      if (holder) {
+        const inPage =
+          s.claimed.has(node) &&
+          node.nodeType === 8 &&
+          !!node.parentNode &&
+          node.parentNode.nodeType !== 11;
+        // A fragment gets its start marker first and its end marker second
+        const which = ++holder.seen;
+        if (which === 1 && inPage) {
+          holder.start = node;
+          return;
+        }
+        if (which === 2 && holder.start) {
+          if (inPage) {
+            holder.end = node;
+            return;
+          }
+          // Only the start marker was in the page. Keep both markers together in the fragment.
+          dom.insert(parent, holder.start, null);
+          holder.start = undefined;
+        }
+      }
+
       // Only appending into a node from the server HTML needs care. Everything else is a normal insert.
-      if (
-        s.active &&
-        anchor === null &&
-        (parent === s.root || s.claimed.has(parent))
-      ) {
+      if (s.active && anchor === null && (parent === s.root || s.claimed.has(parent))) {
         place(parent, node);
         return;
       }
@@ -213,9 +278,7 @@ function takeData(root: Node): unknown[] | null {
     const data: unknown = JSON.parse(text);
     return Array.isArray(data) ? data : null;
   } catch {
-    warn(
-      "hydrate(): could not read the resource data that the server sent, so resources load again.",
-    );
+    warn("hydrate(): could not read the resource data that the server sent, so resources load again.");
     return null;
   }
 }
@@ -245,10 +308,7 @@ function browserTransfer(items: unknown[]): ResourceTransfer {
  * With `renderToStringAsync`, the data that the resources loaded comes with the HTML, so the resources
  * in the browser start with their value and do not load again.
  */
-export function hydrate(
-  component: () => unknown,
-  container: HostNode,
-): () => void {
+export function hydrate(component: () => unknown, container: HostNode): () => void {
   const root = container as Node;
   const data = takeData(root);
   const session = scan(root);
@@ -275,8 +335,7 @@ export function hydrate(
   }
 
   // Whatever is left was written by the server but never made by the browser. Remove it.
-  const leftovers =
-    session.elements.size + session.markers.size + session.texts.size;
+  const leftovers = session.elements.size + session.markers.size + session.texts.size;
   if (leftovers > 0) {
     warn(
       `hydrate(): the server HTML had ${leftovers} node(s) that the browser did not make, so they were removed. Server and browser must render the same thing.`,
