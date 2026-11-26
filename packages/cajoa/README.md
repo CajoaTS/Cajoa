@@ -353,7 +353,7 @@ const page = await renderToStringAsync(() => <App />, {
 
 ### Hydration
 
-`render()` throws away what is in the container and builds the page again. `hydrate()` keeps the HTML the server wrote and only attaches the app to it: events, signals and effects. The elements stay the same, so focus, scroll position and anything the user typed are not lost.
+`render()` throws away what is in the container and builds the page again. `hydrate()` keeps the HTML the server wrote and only attaches the app to it: events, signals and effects. The elements stay the same, so focus, scroll position and text typed in a field that the app does not control (a field without a `value` or `checked` prop) are not lost.
 
 ```tsx
 // On the server
@@ -375,7 +375,8 @@ hydrate(() => <App />, document.getElementById("app")!);
 - A resource gets the server's data only when it has the same source (the value its first function returns) as on the server. If it does not, or if the fetch failed on the server, it loads in the browser.
 - Clicks before `hydrate()` runs are not remembered. Keep the script small, or load it early.
 - Browsers add a `<tbody>` when they read `<table><tr>`. Write the `<tbody>` yourself, so the server HTML and the app agree.
-- Elements inside nested `Show`, `Suspense` or fragment blocks are the same elements as before, but they can be moved inside the page while hydrating. An `<iframe>` or `<video>` in there may reload.
+- Elements are reused, and `hydrate()` does not write an attribute that the server HTML already has, so an `<iframe>`, `<video>` or `<img>` does not reload. Nested `Show` blocks and lists stay in place too. Two cases are still moved once while hydrating: elements inside a `<>...</>` fragment, and content that `Suspense` gets from a fragment. They are the same elements, but an `<iframe>` or `<video>` there may reload.
+- A field with a `value` or `checked` prop is set to what the app says, as always. Text that the user typed in it before `hydrate()` ran is replaced.
 
 ### Page title and meta tags
 
@@ -439,13 +440,13 @@ The Vite plugin turns on dev mode on the dev server only (it sets `globalThis.__
 
 ## Packages
 
-| Package         | What it is                                                                                           |
-| --------------- | ---------------------------------------------------------------------------------------------------- |
-| `cajoa`         | The package most apps install (core + DOM + server, and the Vite plugin as `cajoa/vite`)             |
-| `@cajoa/core`   | Renderer-agnostic core: signals, JSX runtime, `Show`, `For`, context, `Renderer` interface           |
-| `@cajoa/dom`    | DOM renderer, router, `hydrate()`, `<Title>` and `<Meta>`                                            |
-| `@cajoa/server` | Server-side rendering: `renderToString` and `renderToStringAsync` (also available as `cajoa/server`) |
-| `create-cajoa`  | Project starter (`npm create cajoa@latest`)                                                          |
+| Package         | What it is                                                                                                       |
+| --------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `cajoa`         | The package most apps install (core + DOM + server, and the Vite plugin as `cajoa/vite`)                         |
+| `@cajoa/core`   | Renderer-agnostic core: signals, JSX runtime, `Show`, `For`, context, `Renderer` interface                       |
+| `@cajoa/dom`    | DOM renderer, router, `hydrate()`, `<Title>` and `<Meta>`                                                        |
+| `@cajoa/server` | Server-side rendering: `renderToString` and `renderToStringAsync` (also available as `cajoa/server`)             |
+| `create-cajoa`  | Project starter (`npm create cajoa@latest`)                                                                      |
 
 ## API
 
@@ -471,11 +472,11 @@ The Vite plugin turns on dev mode on the dev server only (it sets `globalThis.__
 
 ### Rendering
 
-| Function                        | What it does                                                                                            |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `render(component, container)`  | Mounts a component. Returns a `dispose` function.                                                       |
+| Function                       | What it does                                      |
+| ------------------------------ | ------------------------------------------------- |
+| `render(component, container)` | Mounts a component. Returns a `dispose` function. |
 | `hydrate(component, container)` | Mounts a component on HTML that the server wrote, and keeps its elements. Returns a `dispose` function. |
-| `h(tag, props, ...children)`    | Low-level element creator. JSX compiles to this.                                                        |
+| `h(tag, props, ...children)`   | Low-level element creator. JSX compiles to this.  |
 
 ### Lifecycle
 
@@ -553,12 +554,12 @@ The Vite plugin turns on dev mode on the dev server only (it sets `globalThis.__
 
 ### Server
 
-| Function                             | What it does                                                                                                                 |
-| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| Function                             | What it does                                                             |
+| ------------------------------------ | ------------------------------------------------------------------------ |
 | `renderToString(app, options?)`      | Renders to an HTML string (`cajoa/server`). Does not wait for resources. Options: `url`, `hydratable`, `head`, `onRedirect`. |
-| `renderToStringAsync(app, options?)` | Same, but waits for `createResource` and `lazy`.                                                                             |
-| `headToString(head)`                 | Turns the `head` object (title and meta tags) into HTML.                                                                     |
-| `isServer()`                         | `true` while rendering on the server.                                                                                        |
+| `renderToStringAsync(app, options?)` | Same, but waits for `createResource` and `lazy`.                         |
+| `headToString(head)`                 | Turns the `head` object (title and meta tags) into HTML.                 |
+| `isServer()`                         | `true` while rendering on the server.                                    |
 
 ## Good to know
 
@@ -611,7 +612,7 @@ The Vite plugin turns on dev mode on the dev server only (it sets `globalThis.__
 
 **Next**
 
-- [ ] Keep elements in place while hydrating nested `Show`, `Suspense` and fragments (they are moved now)
+- [ ] Keep elements in place while hydrating `<>...</>` fragments and `Suspense` content (they are moved once now)
 - [ ] Developer tools: see which signals and effects run on each update
 - [ ] Testing utilities
 

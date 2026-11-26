@@ -19,6 +19,10 @@ export default defineConfig({
         replacement: p("../packages/core/src/index.ts"),
       },
       { find: /^@cajoa\/dom$/, replacement: p("../packages/dom/src/index.ts") },
+      {
+        find: /^@cajoa\/server$/,
+        replacement: p("../packages/server/src/index.ts"),
+      },
     ],
   },
   server: { fs: { allow: [p("..")] } },

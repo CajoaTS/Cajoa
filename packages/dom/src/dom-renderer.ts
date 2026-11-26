@@ -166,6 +166,21 @@ function setProperty(el: Element, name: string, value: unknown) {
   }
 }
 
+/**
+ * The attribute that setProp writes for this key. Nothing for an event, a style or a property: those
+ * are not plain attributes. hydrate() uses this to skip writes that would not change anything.
+ */
+export function attributeFor(el: Element, key: string): string | undefined {
+  if (isEvent(el, key) || key === "style") return undefined;
+  if (PROPERTIES.has(key) && key in el) return undefined;
+  const isSvg = el.namespaceURI === SVG_NS;
+  return (
+    (isSvg ? SVG_ATTRIBUTE_NAMES[key] : undefined) ??
+    ATTRIBUTE_NAMES[key] ??
+    key
+  );
+}
+
 export const domRenderer: Renderer<Node> = {
   createElement: (tag) =>
     SVG_TAGS.has(tag)

@@ -1,5 +1,13 @@
 import { test, expect } from "vitest";
-import { createSignal, For, hydrate, render, Show, type JSX } from "cajoa";
+import {
+  createSignal,
+  For,
+  h,
+  hydrate,
+  render,
+  Show,
+  type JSX,
+} from "cajoa";
 import { renderToString } from "@cajoa/server";
 
 function makeApp() {
@@ -138,4 +146,84 @@ test("hydrate() works on an empty container", () => {
   expect(container.innerHTML).toBe("<p>hi</p>");
   dispose();
   expect(container.innerHTML).toBe("");
+});
+
+test("hydrate() does not move elements inside nested blocks", () => {
+  const makeNested = () => {
+    const [on] = createSignal(true);
+    return () =>
+      h(
+        "div",
+        null,
+        Show({
+          when: () => on(),
+          children: () =>
+            Show({
+              when: () => on(),
+              children: () =>
+                h("section", { id: "deep" }, h("i", null, "deep")),
+            }),
+        }),
+        h("footer", null, "end"),
+      );
+  };
+
+  const container = document.createElement("div");
+  container.innerHTML = serverHtml(makeNested());
+  const section = container.querySelector("#deep");
+
+  const observer = new MutationObserver(() => {});
+  observer.observe(container, { childList: true, subtree: true });
+  hydrate(makeNested(), container);
+  const records = observer.takeRecords();
+  observer.disconnect();
+
+  // Moving an element in the page counts as removing it. An <iframe> that moves loads again.
+  const removed = records.flatMap((record) => [...record.removedNodes]);
+  expect(removed.filter((node) => node.nodeType === 1)).toHaveLength(0);
+  expect(container.querySelector("#deep")).toBe(section);
+});
+
+test("hydrate() does not write attributes that are already right", () => {
+  const container = document.createElement("div");
+  container.innerHTML = serverHtml(makeApp().App);
+
+  // Writing an attribute again, even with the same value, can reload an <iframe> or a <video>
+  const writes: string[] = [];
+  const original = Element.prototype.setAttribute;
+  Element.prototype.setAttribute = function (name: string, value: string) {
+    writes.push(name);
+    return original.call(this, name, value);
+  };
+  try {
+    hydrate(makeApp().App, container);
+  } finally {
+    Element.prototype.setAttribute = original;
+  }
+
+  expect(writes).not.toContain("class");
+  expect(writes).not.toContain("id");
+});
+
+test("hydrate() keeps text typed in a field that the app does not control", () => {
+  const app = () =>
+    h(
+      "div",
+      null,
+      h("input", { id: "free" }),
+      h("input", { id: "controlled", value: "start" }),
+    );
+
+  const container = document.createElement("div");
+  container.innerHTML = serverHtml(app);
+  container.querySelector<HTMLInputElement>("#free")!.value = "typed";
+  container.querySelector<HTMLInputElement>("#controlled")!.value = "typed";
+
+  hydrate(app, container);
+
+  expect(container.querySelector<HTMLInputElement>("#free")!.value).toBe("typed");
+  // The app says the value is "start", so that is the value
+  expect(container.querySelector<HTMLInputElement>("#controlled")!.value).toBe(
+    "start",
+  );
 });

@@ -54,7 +54,12 @@ function toNodes(value: unknown): any[] {
   for (const v of ([value] as unknown[]).flat(Infinity) as unknown[]) {
     if (v == null || typeof v === "boolean") continue;
     if (typeof v === "function") {
-      out.push(materialize(v));
+      // The block goes in the page right away, so a renderer may keep its nodes where they are
+      const holder = r.createHolder ? r.createHolder() : r.createFragment();
+      appendChildren(holder, [v as Child]);
+      const parts = r.unwrap?.(holder);
+      if (parts) out.push(...parts);
+      else out.push(holder);
       continue;
     }
     out.push(r.isNode(v) ? v : r.createText(String(v)));
